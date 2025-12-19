@@ -12,39 +12,41 @@ class RoleGatePage extends ConsumerStatefulWidget {
 }
 
 class _RoleGatePageState extends ConsumerState<RoleGatePage> {
-  @override
-  void initState() {
-    super.initState();
-    Future.microtask(() async {
-      final session = ref.read(sessionProvider);
-      if (session.isLoggedIn) {
-        try {
-          await ref.read(sessionProvider.notifier).refreshProfile();
-        } catch (_) {}
-      }
-    });
-  }
+  bool _navigated = false;
 
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(sessionProvider);
 
-    if (!session.isLoggedIn) return const LoginPage();
+    // Belum login -> ke Login
+    if (!session.isLoggedIn) {
+      _navigated = false; // reset kalau user logout lalu balik lagi
+      return const LoginPage();
+    }
+
+    // Role belum kebaca -> loading
     if (session.role == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final role = session.role!;
-      final target = switch (role) {
-        'admin' => Routes.admin,
-        'guru' => Routes.guru,
-        'kepsek' => Routes.kepsek,
-        _ => Routes.parent,
-      };
+    // ✅ Redirect hanya sekali
+    if (!_navigated) {
+      _navigated = true;
 
-      Navigator.pushNamedAndRemoveUntil(context, target, (_) => false);
-    });
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+
+        final role = session.role!;
+        final target = switch (role) {
+          'admin' => Routes.admin,
+          'guru' => Routes.guru,
+          'kepsek' => Routes.kepsek,
+          _ => Routes.parent,
+        };
+
+        Navigator.pushNamedAndRemoveUntil(context, target, (_) => false);
+      });
+    }
 
     return const SizedBox.shrink();
   }

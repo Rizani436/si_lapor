@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'session_provider.dart';
-import '../features/auth/presentation/login_page.dart';
 
-class GuardedPage extends ConsumerWidget {
+import '../features/auth/presentation/login_page.dart';
+import 'routes.dart';
+import 'session_provider.dart';
+
+class GuardedPage extends ConsumerStatefulWidget {
   final List<String> allowedRoles;
   final Widget child;
 
@@ -14,7 +16,24 @@ class GuardedPage extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<GuardedPage> createState() => _GuardedPageState();
+}
+
+class _GuardedPageState extends ConsumerState<GuardedPage> {
+  bool _redirecting = false;
+
+  void _redirectToGateOnce() {
+    if (_redirecting) return;
+    _redirecting = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Navigator.pushNamedAndRemoveUntil(context, Routes.gate, (_) => false);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final session = ref.watch(sessionProvider);
 
     if (!session.isLoggedIn) return const LoginPage();
@@ -23,10 +42,12 @@ class GuardedPage extends ConsumerWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    if (!allowedRoles.contains(session.role)) {
-      return const Scaffold(body: Center(child: Text('Akses ditolak (role tidak sesuai)')));
+    if (!widget.allowedRoles.contains(session.role)) {
+      _redirectToGateOnce();
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return child;
+    _redirecting = false;
+    return widget.child;
   }
 }

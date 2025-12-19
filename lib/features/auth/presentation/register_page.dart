@@ -79,7 +79,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               textCapitalization: TextCapitalization.words,
               decoration: const InputDecoration(
                 labelText: 'Nama Lengkap',
-                hintText: 'Contoh: Ahmad Fauzi',
+                hintText: 'Contoh: Rizal Dwi Kurniawan',
               ),
             ),
             const SizedBox(height: 12),
@@ -112,7 +112,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               obscureText: obscurePassword,
               decoration: InputDecoration(
                 labelText: 'Password',
-                hintText: 'minimal 6 karakter',
+                hintText: 'minimal 8 karakter',
                 suffixIcon: IconButton(
                   icon: Icon(
                     obscurePassword ? Icons.visibility_off : Icons.visibility,
@@ -199,10 +199,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           return;
                         }
 
-                        if (p1.length < 6) {
+                        if (p1.length < 8) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text('Password minimal 6 karakter.'),
+                              content: Text('Password minimal 8 karakter.'),
                             ),
                           );
                           return;

@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
       fillColor: Color(0xFFF5F5F5),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide.none, // ✅ tanpa outline garis
+        borderSide: BorderSide.none, 
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -34,7 +34,7 @@ class MyApp extends StatelessWidget {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(width: 1), // ✅ saat fokus ada border tipis
+        borderSide: BorderSide(width: 1), 
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
     ),

@@ -10,6 +10,7 @@ import '../features/dashboard/kepsek_dashboard.dart';
 import '../features/notifications/notifications_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/register_page.dart';
+import '../features/akun/pages/kelola_akun_page.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -25,6 +26,13 @@ class AppRouter {
           ),
         );
 
+      case Routes.adminAkun:
+        return MaterialPageRoute(
+          builder: (_) => const GuardedPage(
+            allowedRoles: ['admin'],
+            child: KelolaAkunPage(),
+          ),
+        );
       case Routes.guru:
         return MaterialPageRoute(
           builder: (_) => const GuardedPage(

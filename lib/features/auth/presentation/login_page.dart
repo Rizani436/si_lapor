@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/auth_provider.dart';
-import 'register_page.dart';
-import '../../../core/session_provider.dart';
-import '../../dashboard/role_gate_page.dart';
-import '../../../core/routes.dart';
 import 'package:flutter/gestures.dart';
+
+import '../providers/auth_provider.dart';
+import '../../../core/session_provider.dart';
+import '../../../core/routes.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -15,12 +14,36 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
+  late final ProviderSubscription _authSub;
   final emailC = TextEditingController();
   final passC = TextEditingController();
   bool obscurePassword = true;
 
   @override
+  void initState() {
+    super.initState();
+
+    _authSub = ref.listenManual(authControllerProvider, (prev, next) async {
+      next.whenOrNull(
+        data: (_) async {
+          await ref.read(sessionProvider.notifier).refreshProfile();
+          if (!mounted) return;
+
+          Navigator.pushNamedAndRemoveUntil(context, Routes.gate, (_) => false);
+        },
+        error: (e, _) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(e.toString())));
+        },
+      );
+    });
+  }
+
+  @override
   void dispose() {
+    _authSub.close();
     emailC.dispose();
     passC.dispose();
     super.dispose();
@@ -30,16 +53,16 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
 
-    ref.listen(authControllerProvider, (prev, next) {
+    ref.listen(authControllerProvider, (prev, next) async {
       next.whenOrNull(
-        data: (_) {
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            Routes.gate, 
-            (_) => false,
-          );
+        data: (_) async {
+          await ref.read(sessionProvider.notifier).refreshProfile();
+          if (!context.mounted) return;
+
+          Navigator.pushNamedAndRemoveUntil(context, Routes.gate, (_) => false);
         },
         error: (e, _) {
+          if (!context.mounted) return;
           ScaffoldMessenger.of(
             context,
           ).showSnackBar(SnackBar(content: Text(e.toString())));
@@ -50,7 +73,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final isLoading = state.isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Login'), centerTitle: true),
+      appBar: AppBar(
+        title: const Text('Login'),
+        centerTitle: true,
+        automaticallyImplyLeading: false,
+      ),
 
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -69,7 +96,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 labelText: 'Password',
                 suffixIcon: IconButton(
                   icon: Icon(
-                    obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    obscurePassword ? Icons.visibility_off : Icons.visibility,
                   ),
                   onPressed: () {
                     setState(() {
@@ -86,6 +113,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 onPressed: isLoading
                     ? null
                     : () {
+                        FocusScope.of(context).unfocus();
                         final email = emailC.text.trim();
                         final pass = passC.text;
 
