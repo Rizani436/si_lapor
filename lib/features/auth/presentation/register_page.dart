@@ -207,12 +207,17 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           );
                           return;
                         }
+                        String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
+                        
+                         final hpOnlyRaw = phoneE164 != null
+                            ? _digitsOnly(phoneE164!)
+                            : '';
 
                         ref
                             .read(authControllerProvider.notifier)
                             .register(
                               namaLengkap: nama,
-                              noHp: phoneE164!, 
+                              noHp: hpOnlyRaw!, 
                               email: email,
                               password: p1,
                             );
