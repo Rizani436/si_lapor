@@ -13,28 +13,25 @@ class AppScaffold extends ConsumerWidget {
     switch (role) {
       case 'admin':
         return [
-          _MenuItem('Dashboard Admin', Routes.admin),
           _MenuItem('Kelola Akun', '/admin/akun'),
           _MenuItem('Kelola Siswa', '/admin/siswa'),
+          _MenuItem('Kelola Guru', '/admin/guru'),
           _MenuItem('Kelola Kelas', '/admin/kelas'),
           _MenuItem('Profile', '/admin/profile'),
         ];
       case 'guru':
         return [
-          _MenuItem('Dashboard Guru', Routes.guru),
           _MenuItem('Input Laporan', '/guru/input-laporan'),
           _MenuItem('Profile', '/guru/profile'),
         ];
       case 'kepsek':
         return [
-          _MenuItem('Dashboard Kepsek', Routes.kepsek),
           _MenuItem('Monitoring', '/kepsek/monitoring'),
           _MenuItem('Profile', '/kepsek/profile'),
         ];
       case 'parent':
       default:
         return [
-          _MenuItem('Dashboard Orang Tua', Routes.parent),
           _MenuItem('Laporan Anak', '/parent/laporan'),
           _MenuItem('Profile', '/parent/profile'),
         ];

@@ -9,10 +9,10 @@ import '../features/dashboard/teacher_dashboard.dart';
 import '../features/dashboard/parent_dashboard.dart';
 import '../features/dashboard/kepsek_dashboard.dart';
 import '../features/notifications/notifications_page.dart';
-import '../features/auth/presentation/login_page.dart';
-import '../features/auth/presentation/register_page.dart';
+import '../features/auth/pages/login_page.dart';
+import '../features/auth/pages/register_page.dart';
 import '../features/akun/pages/akun_list_page.dart';
-
+import '../features/guru/pages/guru_list_page.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -30,10 +30,8 @@ class AppRouter {
 
       case Routes.adminAkun:
         return MaterialPageRoute(
-          builder: (_) => const GuardedPage(
-            allowedRoles: ['admin'],
-            child: AkunListPage(),
-          ),
+          builder: (_) =>
+              const GuardedPage(allowedRoles: ['admin'], child: AkunListPage()),
         );
       case Routes.adminSiswa:
         return MaterialPageRoute(
@@ -42,7 +40,13 @@ class AppRouter {
             child: SiswaListPage(),
           ),
         );
-
+      case Routes.adminGuru:
+        return MaterialPageRoute(
+          builder: (_) => const GuardedPage(
+            allowedRoles: ['admin'],
+            child: GuruListPage(),
+          ),
+        );
       case Routes.guru:
         return MaterialPageRoute(
           builder: (_) => const GuardedPage(

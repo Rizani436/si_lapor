@@ -6,6 +6,7 @@ class Routes {
   static const admin = '/admin';
   static const adminAkun = '/admin/akun';
   static const adminSiswa = '/admin/siswa';
+  static const adminGuru = '/admin/guru';
   static const adminKelas = '/admin/kelas';
 
 

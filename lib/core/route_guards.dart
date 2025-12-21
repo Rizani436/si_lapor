@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../features/auth/presentation/login_page.dart';
+import '../features/auth/pages/login_page.dart';
 import 'routes.dart';
 import 'session_provider.dart';
 

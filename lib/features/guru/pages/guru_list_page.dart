@@ -1,0 +1,355 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../models/guru_model.dart';
+import '../providers/guru_import_provider.dart';
+import '../providers/guru_provider.dart';
+import '../widgets/guru_tile.dart';
+import 'guru_form_page.dart';
+
+class GuruListPage extends ConsumerStatefulWidget {
+  const GuruListPage({super.key});
+
+  @override
+  ConsumerState<GuruListPage> createState() => _GuruListPageState();
+}
+
+class _GuruListPageState extends ConsumerState<GuruListPage> {
+  final _search = TextEditingController();
+
+  String? _filterJk; 
+  int? _filterStatus;
+  bool _showFilters = false;
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  Future<void> _downloadTemplate(BuildContext context) async {
+    try {
+      final data = await rootBundle.load(
+        'lib/assets/templates/template_guru.xlsx',
+      );
+
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/template_guru.xlsx');
+
+      await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
+
+      await Share.shareXFiles([
+        XFile(file.path),
+      ], text: 'Template Import Guru');
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal download template: $e')));
+    }
+  }
+
+  Future<void> _importExcel(BuildContext context) async {
+    try {
+      final picked = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+        withData: true, 
+      );
+
+      if (picked == null) return;
+
+      final bytes = picked.files.single.bytes;
+      if (bytes == null) throw Exception('Tidak bisa membaca file.');
+
+      final res = await ref
+          .read(guruImportControllerProvider.notifier)
+          .importXlsxBytes(bytes);
+
+      await ref.read(guruListProvider.notifier).refresh();
+
+      if (!context.mounted) return;
+
+      final msg = res.errors.isEmpty
+          ? 'Import selesai. Berhasil: ${res.successRows}'
+          : 'Import selesai. Berhasil: ${res.successRows}, Gagal: ${res.errors.length}';
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: const Text('Hasil Import'),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Text(
+                res.errors.isEmpty
+                    ? msg
+                    : '$msg\n\nDetail error:\n- ${res.errors.take(20).join('\n- ')}'
+                          '${res.errors.length > 20 ? '\n... (${res.errors.length - 20} error lain)' : ''}',
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Import gagal: $e')));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final guruAsync = ref.watch(guruListProvider);
+
+    final importState = ref.watch(guruImportControllerProvider);
+    final importing = importState.isLoading;
+    final hasActiveFilter = _filterJk != null || _filterStatus != null;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Kelola Guru'),
+        actions: [
+          IconButton(
+            tooltip: 'Download Template',
+            icon: const Icon(Icons.file_download),
+            onPressed: () => _downloadTemplate(context),
+          ),
+          IconButton(
+            tooltip: 'Import Excel',
+            icon: importing
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.upload_file),
+            onPressed: importing ? null : () => _importExcel(context),
+          ),
+          IconButton(
+            tooltip: 'Refresh',
+            icon: const Icon(Icons.refresh),
+            onPressed: () => ref.read(guruListProvider.notifier).refresh(),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.add),
+        onPressed: () async {
+          final ok = await Navigator.push<bool>(
+            context,
+            MaterialPageRoute(builder: (_) => const GuruFormPage()),
+          );
+          if (ok == true && context.mounted) {
+            ref.read(guruListProvider.notifier).refresh();
+          }
+        },
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _search,
+                    onChanged: (_) => setState(() {}),
+                    decoration: const InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      hintText: 'Cari nama / NIP...',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ),
+
+                IconButton(
+                  tooltip: 'Filter',
+                  icon: Stack(
+                    children: [
+                      Icon(
+                        _showFilters ? Icons.filter_alt_off : Icons.filter_alt,
+                      ),
+                      if (hasActiveFilter)
+                        const Positioned(
+                          right: 0,
+                          top: 0,
+                          child: CircleAvatar(radius: 4),
+                        ),
+                    ],
+                  ),
+                  onPressed: () => setState(() => _showFilters = !_showFilters),
+                ),
+              ],
+            ),
+          ),
+
+          if (_showFilters)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+              child: Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  SizedBox(
+                    width: 160,
+                    child: DropdownButtonFormField<String?>(
+                      isExpanded: true,
+                      value: _filterJk,
+                      decoration: const InputDecoration(
+                        labelText: 'Jenis Kelamin',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: null, child: Text('Semua')),
+                        DropdownMenuItem(
+                          value: 'L',
+                          child: Text('Laki-laki (L)'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'P',
+                          child: Text('Perempuan (P)'),
+                        ),
+                      ],
+                      onChanged: (v) => setState(() => _filterJk = v),
+                    ),
+                  ),
+
+                  SizedBox(
+                    width: 160,
+                    child: DropdownButtonFormField<int?>(
+                      isExpanded: true,
+                      value: _filterStatus,
+                      decoration: const InputDecoration(
+                        labelText: 'Status',
+                        border: OutlineInputBorder(),
+                        isDense: true,
+                        contentPadding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: null, child: Text('Semua')),
+                        DropdownMenuItem(value: 1, child: Text('Aktif')),
+                        DropdownMenuItem(value: 0, child: Text('Nonaktif')),
+                      ],
+                      onChanged: (v) => setState(() => _filterStatus = v),
+                    ),
+                  ),
+
+                  OutlinedButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        _filterJk = null;
+                        _filterStatus = null;
+                      });
+                    },
+                    icon: const Icon(Icons.clear),
+                    label: const Text('Reset'),
+                  ),
+                ],
+              ),
+            ),
+
+          Expanded(
+            child: guruAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (e, _) => Center(child: Text('Error: $e')),
+              data: (list) {
+                final q = _search.text.trim().toLowerCase();
+
+                final filtered = list.where((s) {
+                  final okSearch =
+                      q.isEmpty ||
+                      s.namaLengkap.toLowerCase().contains(q) ||
+                      s.nip.toLowerCase().contains(q);
+
+                  final okJk = _filterJk == null || s.jenisKelamin == _filterJk;
+                  final okStatus =
+                      _filterStatus == null || s.ketAktif == _filterStatus;
+
+                  return okSearch && okJk && okStatus;
+                }).toList();
+
+                if (filtered.isEmpty) {
+                  return const Center(child: Text('Data guru kosong.'));
+                }
+
+                return ListView.separated(
+                  itemCount: filtered.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, i) {
+                    final s = filtered[i];
+                    return GuruTile(
+                      s: s,
+                      onTap: () async {
+                        final ok = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => GuruFormPage(existing: s),
+                          ),
+                        );
+                        if (ok == true && context.mounted) {
+                          ref.read(guruListProvider.notifier).refresh();
+                        }
+                      },
+                      onToggleAktif: () async {
+                        await ref
+                            .read(guruListProvider.notifier)
+                            .toggleAktif(s);
+                      },
+                      onDelete: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Hapus guru?'),
+                            content: Text('Yakin hapus "${s.namaLengkap}"?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Batal'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Hapus'),
+                              ),
+                            ],
+                          ),
+                        );
+
+                        if (confirm == true && context.mounted) {
+                          await ref
+                              .read(guruListProvider.notifier)
+                              .remove(s.idDataGuru);
+                        }
+                      },
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
