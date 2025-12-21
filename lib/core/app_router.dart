@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:si_lapor/features/siswa/pages/siswa_list_page.dart';
 import 'routes.dart';
 import 'route_guards.dart';
 
@@ -10,7 +11,8 @@ import '../features/dashboard/kepsek_dashboard.dart';
 import '../features/notifications/notifications_page.dart';
 import '../features/auth/presentation/login_page.dart';
 import '../features/auth/presentation/register_page.dart';
-import '../features/akun/pages/kelola_akun_page.dart';
+import '../features/akun/pages/akun_list_page.dart';
+
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -30,9 +32,17 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const GuardedPage(
             allowedRoles: ['admin'],
-            child: KelolaAkunPage(),
+            child: AkunListPage(),
           ),
         );
+      case Routes.adminSiswa:
+        return MaterialPageRoute(
+          builder: (_) => const GuardedPage(
+            allowedRoles: ['admin'],
+            child: SiswaListPage(),
+          ),
+        );
+
       case Routes.guru:
         return MaterialPageRoute(
           builder: (_) => const GuardedPage(
@@ -58,7 +68,6 @@ class AppRouter {
         );
 
       case Routes.notifications:
-
         return MaterialPageRoute(
           builder: (_) => const GuardedPage(
             allowedRoles: ['admin', 'guru', 'parent', 'kepsek'],
