@@ -207,10 +207,10 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                           );
                           return;
                         }
-                        String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
+                        String digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
                         
                          final hpOnlyRaw = phoneE164 != null
-                            ? _digitsOnly(phoneE164!)
+                            ? digitsOnly(phoneE164!)
                             : '';
 
                         ref

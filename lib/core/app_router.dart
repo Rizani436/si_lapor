@@ -13,6 +13,7 @@ import '../features/auth/pages/login_page.dart';
 import '../features/auth/pages/register_page.dart';
 import '../features/akun/pages/akun_list_page.dart';
 import '../features/guru/pages/guru_list_page.dart';
+import '../features/kelas/pages/kelas_list_page.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -42,9 +43,14 @@ class AppRouter {
         );
       case Routes.adminGuru:
         return MaterialPageRoute(
+          builder: (_) =>
+              const GuardedPage(allowedRoles: ['admin'], child: GuruListPage()),
+        );
+      case Routes.adminKelas:
+        return MaterialPageRoute(
           builder: (_) => const GuardedPage(
             allowedRoles: ['admin'],
-            child: GuruListPage(),
+            child: KelasListPage(),
           ),
         );
       case Routes.guru:

@@ -122,6 +122,7 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   labelText: 'Tahun Masuk',
+                  hintText: 'Contoh: 2022',
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) {
