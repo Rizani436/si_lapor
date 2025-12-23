@@ -19,20 +19,28 @@ class AuthController extends AsyncNotifier<void> {
     required String password,
   }) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
+    try {
       await ref.read(authRepositoryProvider).register(
             namaLengkap: namaLengkap,
             noHp: noHp,
             email: email,
             password: password,
           );
-    });
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow; // ✅ IMPORTANT: biar UI bisa SnackBar
+    }
   }
 
   Future<void> login(String email, String password) async {
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() async {
+    try {
       await ref.read(authRepositoryProvider).login(email: email, password: password);
-    });
+      state = const AsyncData(null);
+    } catch (e, st) {
+      state = AsyncError(e, st);
+      rethrow; // ✅ IMPORTANT
+    }
   }
 }

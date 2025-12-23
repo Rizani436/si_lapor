@@ -33,18 +33,19 @@ class AkunListNotifier extends AsyncNotifier<List<AkunModel>> {
     final current = List<AkunModel>.from(state.value ?? const <AkunModel>[]);
     state = AsyncData(current);
 
-    final created = await _service.create(
-      payload: payload,
-      password: password,
-    );
+    final created = await _service.create(payload: payload, password: password);
 
     state = AsyncData(<AkunModel>[created, ...current]);
   }
 
-  Future<void> edit(String id, AkunModel payload) async {
-    final current = List<AkunModel>.from(state.value ?? const <AkunModel>[]);
+  Future<void> edit(String id, AkunModel payload, {String? newPassword}) async {
+    final current = List<AkunModel>.from(state.value ?? <AkunModel>[]);
 
-    final updated = await _service.update(id, payload);
+    final updated = await _service.update(
+      id,
+      payload,
+      newPassword,
+    );
 
     final idx = current.indexWhere((x) => x.id == id);
     if (idx != -1) current[idx] = updated;

@@ -14,6 +14,7 @@ import '../features/auth/pages/register_page.dart';
 import '../features/akun/pages/akun_list_page.dart';
 import '../features/guru/pages/guru_list_page.dart';
 import '../features/kelas/pages/kelas_list_page.dart';
+import '../features/profile/pages/profile_page.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -82,6 +83,13 @@ class AppRouter {
           builder: (_) => const GuardedPage(
             allowedRoles: ['admin', 'guru', 'parent', 'kepsek'],
             child: NotificationsPage(),
+          ),
+        );
+      case Routes.profile:
+        return MaterialPageRoute(
+          builder: (_) => const GuardedPage(
+            allowedRoles: ['admin', 'guru', 'parent', 'kepsek'],
+            child: ProfilePage(),
           ),
         );
       case Routes.login:

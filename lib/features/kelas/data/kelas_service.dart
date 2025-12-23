@@ -66,7 +66,7 @@ class KelasService {
   }
 
   Future<KelasModel> update(int idRuangKelas, KelasModel payload) async {
-    final resUpdateKelas = await _db
+    await _db
         .from('kelasalquran')
         .update({
           'nama_kelas': payload.namaKelas,

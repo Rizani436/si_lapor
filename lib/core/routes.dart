@@ -2,6 +2,7 @@ class Routes {
   static const gate = '/';
   static const login = '/login';
   static const register = '/register';
+  static const profile = '/profile';
 
   static const admin = '/admin';
   static const adminAkun = '/admin/akun';

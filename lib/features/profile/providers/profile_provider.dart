@@ -10,7 +10,9 @@ final profileServiceProvider = Provider<ProfileService>((ref) {
 });
 
 final myProfileProvider =
-    AsyncNotifierProvider<MyProfileNotifier, ProfileModel?>(MyProfileNotifier.new);
+    AsyncNotifierProvider<MyProfileNotifier, ProfileModel?>(
+      MyProfileNotifier.new,
+    );
 
 class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
   late final ProfileService _service = ref.read(profileServiceProvider);
@@ -27,7 +29,9 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
     final session = ref.read(sessionProvider);
     if (!session.isLoggedIn || session.userId == null) return;
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.getMyProfile(session.userId!));
+    state = await AsyncValue.guard(
+      () => _service.getMyProfile(session.userId!),
+    );
     // sync ke session state (foto/nama/email)
     await ref.read(sessionProvider.notifier).refreshProfile();
   }
@@ -38,21 +42,21 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
     if (uid == null) return;
 
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateProfile(uid, {
-          'nama_lengkap': nama.trim(),
-        }));
+    state = await AsyncValue.guard(
+      () => _service.updateProfile(uid, {'nama_lengkap': nama.trim()}),
+    );
     await ref.read(sessionProvider.notifier).refreshProfile();
   }
 
-  Future<void> updateNoHp(String noHp) async {
+  Future<void> updateNoHP(String noHp) async {
     final session = ref.read(sessionProvider);
     final uid = session.userId;
     if (uid == null) return;
 
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateProfile(uid, {
-          'no_hp': noHp.trim(),
-        }));
+    state = await AsyncValue.guard(
+      () => _service.updateNoHP(uid, {'no_hp': noHp.trim()}),
+    );
     await ref.read(sessionProvider.notifier).refreshProfile();
   }
 
@@ -61,19 +65,15 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
     final uid = session.userId;
     if (uid == null) return;
 
-    // 1) update auth email (biasanya butuh konfirmasi)
-    await _service.changeEmail(email.trim());
+    final clean = email.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
-    // 2) update juga kolom email di profiles (opsional)
+    // 2) Update kolom email di profiles
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.updateProfile(uid, {
-          'email': email.trim(),
-        }));
-    await ref.read(sessionProvider.notifier).refreshProfile();
-  }
+    state = await AsyncValue.guard(
+      () => _service.updateEmail(uid, clean),
+    );
 
-  Future<void> changePassword(String newPassword) async {
-    await _service.changePassword(newPassword);
+    await ref.read(sessionProvider.notifier).refreshProfile();
   }
 
   Future<void> uploadAvatar(Uint8List bytes, String filename) async {
@@ -82,11 +82,18 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
     if (uid == null) return;
 
     state = const AsyncLoading();
-    state = await AsyncValue.guard(() => _service.uploadAvatar(
-          userId: uid,
-          bytes: bytes,
-          originalFilename: filename,
-        ));
+    state = await AsyncValue.guard(
+      () => _service.uploadAvatar(
+        userId: uid,
+        bytes: bytes,
+        originalFilename: filename,
+      ),
+    );
+
+    // sync session (ambil URL baru)
     await ref.read(sessionProvider.notifier).refreshProfile();
+
+    // ✅ paksa bust cache di UI (drawer/navbar/profile)
+    ref.read(sessionProvider.notifier).bumpAvatarVersion();
   }
 }

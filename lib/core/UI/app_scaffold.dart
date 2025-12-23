@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../routes.dart';
 import '../session_provider.dart';
+import '../navigator_key.dart'; // ✅ sesuaikan path: core/navigator_key.dart
 
 class AppScaffold extends ConsumerWidget {
   final String title;
@@ -17,25 +18,49 @@ class AppScaffold extends ConsumerWidget {
           _MenuItem('Kelola Siswa', '/admin/siswa'),
           _MenuItem('Kelola Guru', '/admin/guru'),
           _MenuItem('Kelola Kelas', '/admin/kelas'),
-          _MenuItem('Profile', '/admin/profile'),
+          _MenuItem('Profile', '/profile'),
         ];
       case 'guru':
         return [
           _MenuItem('Input Laporan', '/guru/input-laporan'),
-          _MenuItem('Profile', '/guru/profile'),
+          _MenuItem('Profile', '/profile'),
         ];
       case 'kepsek':
         return [
           _MenuItem('Monitoring', '/kepsek/monitoring'),
-          _MenuItem('Profile', '/kepsek/profile'),
+          _MenuItem('Profile', '/profile'),
         ];
       case 'parent':
       default:
         return [
           _MenuItem('Laporan Anak', '/parent/laporan'),
-          _MenuItem('Profile', '/parent/profile'),
+          _MenuItem('Profile', '/profile'),
         ];
     }
+  }
+
+  void _navTo(String route) {
+    // ✅ Tutup drawer pakai navigator global (pop top route = drawer)
+    navigatorKey.currentState?.pop();
+
+    // ✅ Push route pakai navigator global (tanpa context)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      navigatorKey.currentState?.pushNamed(route);
+    });
+  }
+
+  Future<void> _logout(WidgetRef ref) async {
+    // tutup drawer
+    navigatorKey.currentState?.pop();
+
+    await ref.read(sessionProvider.notifier).logout();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      navigatorKey.currentState?.pushNamedAndRemoveUntil(
+        Routes.login,
+        (_) => false,
+      );
+    });
   }
 
   @override
@@ -45,15 +70,19 @@ class AppScaffold extends ConsumerWidget {
     final menu = _menuByRole(role);
 
     final fotoProfile = session.fotoProfile;
-    final namaLengkap = session.namaLengkap; 
-    final userId = session.userId ?? '';
+    final v = session.avatarVersion;
 
+    final fotoProfileUrl = (fotoProfile != null && fotoProfile.isNotEmpty)
+        ? '$fotoProfile?v=$v'
+        : null;
+
+    final namaLengkap = session.namaLengkap;
+    final userId = session.userId ?? '';
     return Scaffold(
       drawer: Drawer(
         child: SafeArea(
           child: Column(
             children: [
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                 child: Row(
@@ -62,9 +91,9 @@ class AppScaffold extends ConsumerWidget {
                       radius: 28,
                       backgroundColor: Colors.grey.shade300,
                       child: ClipOval(
-                        child: (fotoProfile != null && fotoProfile.isNotEmpty)
+                        child: (fotoProfileUrl != null)
                             ? Image.network(
-                                fotoProfile,
+                                fotoProfileUrl,
                                 width: 56,
                                 height: 56,
                                 fit: BoxFit.cover,
@@ -120,7 +149,6 @@ class AppScaffold extends ConsumerWidget {
                   ],
                 ),
               ),
-
               const Divider(),
 
               Expanded(
@@ -133,10 +161,7 @@ class AppScaffold extends ConsumerWidget {
                           '>',
                           style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
-                        onTap: () {
-                          Navigator.pop(context);
-                          Navigator.pushNamed(context, item.route);
-                        },
+                        onTap: () => _navTo(item.route),
                       ),
                   ],
                 ),
@@ -151,33 +176,23 @@ class AppScaffold extends ConsumerWidget {
                   '>',
                   style: TextStyle(fontSize: 18, color: Colors.grey),
                 ),
-                onTap: () async {
-                  Navigator.pop(context); 
-                  await ref.read(sessionProvider.notifier).logout();
-                  if (!context.mounted) return;
-                  Navigator.pushNamedAndRemoveUntil(
-                    context,
-                    Routes.login,
-                    (_) => false,
-                  );
-                },
+                onTap: () => _logout(ref),
               ),
             ],
           ),
         ),
       ),
-
       appBar: AppBar(
         centerTitle: true,
         title: Text(title),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications),
-            onPressed: () => Navigator.pushNamed(context, Routes.notifications),
+            onPressed: () =>
+                navigatorKey.currentState?.pushNamed(Routes.notifications),
           ),
         ],
       ),
-
       body: body,
     );
   }

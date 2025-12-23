@@ -17,7 +17,9 @@ class AkunService {
     return (res as List).map((e) => AkunModel.fromMap(e)).toList();
   }
 
-  Future<AkunModel> create({ required AkunModel payload, required String password
+  Future<AkunModel> create({
+    required AkunModel payload,
+    required String password,
   }) async {
     await supabase.functions.invoke(
       'create-user',
@@ -39,7 +41,23 @@ class AkunService {
     return AkunModel.fromMap(res);
   }
 
-  Future<AkunModel> update(String id, AkunModel payload) async {
+  Future<AkunModel> update(
+    String id,
+    AkunModel payload,
+    String? newPassword,
+  ) async {
+    await supabase.functions.invoke(
+      'update-user',
+      body: {
+        'user_id': id,
+        'email': payload.email,
+        'nama_lengkap': payload.namaLengkap,
+        'no_hp': payload.noHp,
+        if (newPassword != null && newPassword.trim().isNotEmpty)
+          'password': newPassword.trim(),
+      },
+    );
+
     final res = await _client
         .from(_table)
         .update(payload.toMap())

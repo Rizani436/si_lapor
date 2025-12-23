@@ -14,36 +14,12 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  late final ProviderSubscription _authSub;
   final emailC = TextEditingController();
   final passC = TextEditingController();
   bool obscurePassword = true;
 
   @override
-  void initState() {
-    super.initState();
-
-    _authSub = ref.listenManual(authControllerProvider, (prev, next) async {
-      next.whenOrNull(
-        data: (_) async {
-          await ref.read(sessionProvider.notifier).refreshProfile();
-          if (!mounted) return;
-
-          Navigator.pushNamedAndRemoveUntil(context, Routes.gate, (_) => false);
-        },
-        error: (e, _) {
-          if (!mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(e.toString())));
-        },
-      );
-    });
-  }
-
-  @override
   void dispose() {
-    _authSub.close();
     emailC.dispose();
     passC.dispose();
     super.dispose();
@@ -52,24 +28,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
-
-    ref.listen(authControllerProvider, (prev, next) async {
-      next.whenOrNull(
-        data: (_) async {
-          await ref.read(sessionProvider.notifier).refreshProfile();
-          if (!context.mounted) return;
-
-          Navigator.pushNamedAndRemoveUntil(context, Routes.gate, (_) => false);
-        },
-        error: (e, _) {
-          if (!context.mounted) return;
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(e.toString())));
-        },
-      );
-    });
-
     final isLoading = state.isLoading;
 
     return Scaffold(
@@ -78,7 +36,6 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -98,11 +55,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   icon: Icon(
                     obscurePassword ? Icons.visibility_off : Icons.visibility,
                   ),
-                  onPressed: () {
-                    setState(() {
-                      obscurePassword = !obscurePassword;
-                    });
-                  },
+                  onPressed: () =>
+                      setState(() => obscurePassword = !obscurePassword),
                 ),
               ),
             ),
@@ -112,8 +66,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               child: ElevatedButton(
                 onPressed: isLoading
                     ? null
-                    : () {
+                    : () async {
                         FocusScope.of(context).unfocus();
+
                         final email = emailC.text.trim();
                         final pass = passC.text;
 
@@ -126,9 +81,31 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           return;
                         }
 
-                        ref
-                            .read(authControllerProvider.notifier)
-                            .login(email, pass);
+                        try {
+                          // ✅ login (kalau salah akan throw)
+                          await ref
+                              .read(authControllerProvider.notifier)
+                              .login(email, pass);
+
+                          // ✅ refresh profile boleh gagal, tapi login tetap lanjut
+                          try {
+                            await ref
+                                .read(sessionProvider.notifier)
+                                .refreshProfile();
+                          } catch (_) {}
+
+                          if (!mounted) return;
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            Routes.gate,
+                            (_) => false,
+                          );
+                        } catch (e) {
+                          if (!mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(e.toString())),
+                          );
+                        }
                       },
                 child: Text(isLoading ? 'Loading...' : 'Login'),
               ),

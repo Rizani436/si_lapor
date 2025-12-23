@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:flutter/gestures.dart';
+
 import '../providers/auth_provider.dart';
 import '../../../core/routes.dart';
-import 'package:flutter/gestures.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});
@@ -13,17 +14,59 @@ class RegisterPage extends ConsumerStatefulWidget {
 }
 
 class _RegisterPageState extends ConsumerState<RegisterPage> {
+  late final ProviderSubscription<AsyncValue<void>> _authSub;
+
   final namaC = TextEditingController();
   final emailC = TextEditingController();
   final passC = TextEditingController();
   final pass2C = TextEditingController();
+
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
 
   String? phoneE164;
 
+  bool _handled = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // ✅ LISTENER CUMA DI SINI (JANGAN DI BUILD)
+    _authSub = ref.listenManual<AsyncValue<void>>(authControllerProvider, (prev, next) {
+      next.whenOrNull(
+        data: (_) {
+          if (_handled) return;
+          _handled = true;
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Register berhasil ✅ Silakan login.')),
+          );
+
+          // ✅ reset provider biar state bersih (penting!)
+          ref.invalidate(authControllerProvider);
+
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            Navigator.pushNamedAndRemoveUntil(context, Routes.login, (_) => false);
+          });
+        },
+        error: (e, _) {
+          _handled = false;
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(e.toString())),
+          );
+        },
+      );
+    });
+  }
+
   @override
   void dispose() {
+    _authSub.close();
     namaC.dispose();
     emailC.dispose();
     passC.dispose();
@@ -32,36 +75,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   }
 
   bool _isValidEmail(String email) {
-
     final r = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
     return r.hasMatch(email);
   }
 
+  String _digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(authControllerProvider);
-
-    ref.listen(authControllerProvider, (prev, next) {
-      next.whenOrNull(
-        data: (_) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Register berhasil ✅ Silakan login.')),
-          );
-
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            Routes.login,
-            (_) => false,
-          );
-        },
-        error: (e, _) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text(e.toString())));
-        },
-      );
-    });
-
     final isLoading = state.isLoading;
 
     return Scaffold(
@@ -85,15 +107,15 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             const SizedBox(height: 12),
 
             IntlPhoneField(
-              initialCountryCode: 'ID', // tetap default +62
-              showCountryFlag: false, // ✅ bendera di field HILANG
-              showDropdownIcon: true, // dropdown tetap ada untuk pilih kode
+              initialCountryCode: 'ID',
+              showCountryFlag: false,
+              showDropdownIcon: true,
               decoration: const InputDecoration(
                 labelText: 'Nomor HP',
                 hintText: '81234567890',
               ),
               onChanged: (phone) {
-                phoneE164 = phone.completeNumber; 
+                phoneE164 = phone.completeNumber; // +62812...
               },
             ),
 
@@ -107,6 +129,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               ),
             ),
             const SizedBox(height: 12),
+
             TextField(
               controller: passC,
               obscureText: obscurePassword,
@@ -114,14 +137,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 labelText: 'Password',
                 hintText: 'minimal 8 karakter',
                 suffixIcon: IconButton(
-                  icon: Icon(
-                    obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      obscurePassword = !obscurePassword;
-                    });
-                  },
+                  icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => obscurePassword = !obscurePassword),
                 ),
               ),
             ),
@@ -133,16 +150,8 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               decoration: InputDecoration(
                 labelText: 'Konfirmasi Password',
                 suffixIcon: IconButton(
-                  icon: Icon(
-                    obscureConfirmPassword
-                        ? Icons.visibility_off
-                        : Icons.visibility,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      obscureConfirmPassword = !obscureConfirmPassword;
-                    });
-                  },
+                  icon: Icon(obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
+                  onPressed: () => setState(() => obscureConfirmPassword = !obscureConfirmPassword),
                 ),
               ),
             ),
@@ -160,64 +169,47 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         final p1 = passC.text;
                         final p2 = pass2C.text;
 
-                        if (nama.isEmpty ||
-                            email.isEmpty ||
-                            p1.isEmpty ||
-                            p2.isEmpty) {
+                        if (nama.isEmpty || email.isEmpty || p1.isEmpty || p2.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Semua field wajib diisi.'),
-                            ),
+                            const SnackBar(content: Text('Semua field wajib diisi.')),
                           );
                           return;
                         }
 
                         if (!_isValidEmail(email)) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Format email tidak valid.'),
-                            ),
+                            const SnackBar(content: Text('Format email tidak valid.')),
                           );
                           return;
                         }
 
                         if (phoneE164 == null || phoneE164!.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Nomor HP wajib diisi.'),
-                            ),
+                            const SnackBar(content: Text('Nomor HP wajib diisi.')),
                           );
                           return;
                         }
 
                         if (p1 != p2) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Password tidak sama.'),
-                            ),
+                            const SnackBar(content: Text('Password tidak sama.')),
                           );
                           return;
                         }
 
                         if (p1.length < 8) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Password minimal 8 karakter.'),
-                            ),
+                            const SnackBar(content: Text('Password minimal 8 karakter.')),
                           );
                           return;
                         }
-                        String digitsOnly(String s) => s.replaceAll(RegExp(r'[^0-9]'), '');
-                        
-                         final hpOnlyRaw = phoneE164 != null
-                            ? digitsOnly(phoneE164!)
-                            : '';
 
-                        ref
-                            .read(authControllerProvider.notifier)
-                            .register(
+                        final hpOnly = _digitsOnly(phoneE164!);
+
+                        _handled = false; // reset handler
+                        ref.read(authControllerProvider.notifier).register(
                               namaLengkap: nama,
-                              noHp: hpOnlyRaw!, 
+                              noHp: hpOnly,
                               email: email,
                               password: p1,
                             );

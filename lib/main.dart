@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/app_router.dart';
 import 'core/routes.dart';
 import 'core/supabase_client.dart';
+import 'core/messenger_key.dart';
+import 'core/navigator_key.dart'; // ✅ tambah ini
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,30 +18,31 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-  debugShowCheckedModeBanner: false,
-  initialRoute: Routes.login, 
-  onGenerateRoute: AppRouter.onGenerateRoute,
-  theme: ThemeData(
-    useMaterial3: true,
-    inputDecorationTheme: const InputDecorationTheme(
-      filled: true,
-      fillColor: Color(0xFFF5F5F5),
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide.none, 
+      navigatorKey: navigatorKey,           // ✅ tambah
+      scaffoldMessengerKey: messengerKey,   // ✅ kalau sudah pakai
+      debugShowCheckedModeBanner: false,
+      initialRoute: Routes.login,
+      onGenerateRoute: AppRouter.onGenerateRoute,
+      theme: ThemeData(
+        useMaterial3: true,
+        inputDecorationTheme: const InputDecorationTheme(
+          filled: true,
+          fillColor: Color(0xFFF5F5F5),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(12)),
+            borderSide: BorderSide(width: 1),
+          ),
+          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+        ),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide.none,
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.all(Radius.circular(12)),
-        borderSide: BorderSide(width: 1), 
-      ),
-      contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-    ),
-  ),
-);
-
+    );
   }
 }

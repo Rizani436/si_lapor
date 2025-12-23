@@ -283,17 +283,17 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                             final email = emailC.text.trim();
                             final nama = namaLengkapC.text.trim();
                             final pass = passwordC.text; 
-                            String _digitsOnly(String s) =>
+                            String digitsOnly(String s) =>
                                 s.replaceAll(RegExp(r'[^0-9]'), '');
                             final hpOnlyRaw = _phoneNumberOnly.trim().isNotEmpty
                                 ? _phoneNumberOnly.trim()
                                 : _phoneInputC.text
                                       .trim(); 
 
-                            final hpOnly = _digitsOnly(hpOnlyRaw);
+                            final hpOnly = digitsOnly(hpOnlyRaw);
 
 
-                            final hpFullNoPlus = _digitsOnly(
+                            final hpFullNoPlus = digitsOnly(
                               '$_dialCode$hpOnly',
                             ); 
 
@@ -344,7 +344,7 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
 
                                 await ref
                                     .read(akunListProvider.notifier)
-                                    .edit(akun.id, payload);
+                                    .edit(akun.id, payload, newPassword: pass);
                                 await safeClosePage(rootContext);
                                 showSnackRoot(
                                   rootContext,

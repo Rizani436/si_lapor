@@ -21,16 +21,19 @@ class AkunTile extends StatelessWidget {
     final status = isActive ? 'Aktif' : 'Nonaktif';
 
     final hasPhoto = p.fotoProfile != null && p.fotoProfile!.trim().isNotEmpty;
+    final photoUrl = hasPhoto
+        ? '${p.fotoProfile!}?v=${DateTime.now().millisecondsSinceEpoch}'
+        : null;
 
     return ListTile(
       leading: CircleAvatar(
         radius: 22,
         backgroundColor: Colors.grey.shade200,
-        backgroundImage: hasPhoto ? NetworkImage(p.fotoProfile!) : null,
-        child: hasPhoto
-            ? null
-            : Icon(Icons.person, color: Colors.grey.shade600),
-        onBackgroundImageError: hasPhoto ? (_, __) {} : null,
+        backgroundImage: photoUrl != null ? NetworkImage(photoUrl) : null,
+        child: photoUrl == null
+            ? Icon(Icons.person, color: Colors.grey.shade600)
+            : null,
+        onBackgroundImageError: photoUrl != null ? (_, __) {} : null,
       ),
       title: Text(
         p.namaLengkap?.isNotEmpty == true ? p.namaLengkap! : '(Tanpa nama)',
@@ -40,14 +43,10 @@ class AkunTile extends StatelessWidget {
       ),
       trailing: PopupMenuButton<String>(
         onSelected: (v) async {
-          if (v == 'toggle') {
-            onToggleAktif();
-          }
+          if (v == 'toggle') onToggleAktif();
           if (v == 'delete') {
             final confirm = await _confirmDelete(context);
-            if (confirm == true) {
-              await onDelete(); 
-            }
+            if (confirm == true) await onDelete();
           }
         },
         itemBuilder: (ctx) => [

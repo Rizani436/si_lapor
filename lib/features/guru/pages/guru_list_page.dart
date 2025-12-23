@@ -6,8 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
-
-import '../models/guru_model.dart';
 import '../providers/guru_import_provider.dart';
 import '../providers/guru_provider.dart';
 import '../widgets/guru_tile.dart';

@@ -28,9 +28,7 @@ serve(async (req) => {
 
     if (!PROJECT_URL || !SERVICE_ROLE_KEY || !ANON_KEY) {
       return new Response(
-        JSON.stringify({
-          error: "Missing env: PROJECT_URL/SERVICE_ROLE_KEY/ANON_KEY",
-        }),
+        JSON.stringify({ error: "Missing env: PROJECT_URL/SERVICE_ROLE_KEY/ANON_KEY" }),
         { status: 500, headers: { "Content-Type": "application/json" } },
       );
     }
@@ -43,14 +41,12 @@ serve(async (req) => {
       });
     }
 
-    // Client pemanggil (admin login) untuk cek role
+    // client pemanggil (pakai token user)
     const supabaseUserClient = createClient(PROJECT_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const { data: userData, error: userErr } =
-      await supabaseUserClient.auth.getUser();
-
+    const { data: userData, error: userErr } = await supabaseUserClient.auth.getUser();
     if (userErr || !userData?.user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -60,13 +56,12 @@ serve(async (req) => {
 
     const callerId = userData.user.id;
 
-    // Cek role caller = admin
-    const { data: callerProfile, error: callerProfileErr } =
-      await supabaseUserClient
-        .from("profiles")
-        .select("role")
-        .eq("id", callerId)
-        .maybeSingle();
+    // ambil role caller
+    const { data: callerProfile, error: callerProfileErr } = await supabaseUserClient
+      .from("profiles")
+      .select("role")
+      .eq("id", callerId)
+      .maybeSingle();
 
     if (callerProfileErr) {
       return new Response(JSON.stringify({ error: callerProfileErr.message }), {
@@ -75,18 +70,16 @@ serve(async (req) => {
       });
     }
 
-    if (callerProfile?.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
-        status: 403,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
+    const callerRole = (callerProfile?.role ?? "parent").toString();
 
-    // Input
+    // input
     const body = await req.json();
     const user_id = (body?.user_id ?? "").toString().trim();
-    const email = body?.email != null ? body.email.toString().trim().toLowerCase() : null;
-    const password = body?.password != null ? body.password.toString() : null;
+
+    const email =
+      body?.email != null ? body.email.toString().trim().toLowerCase() : null;
+    const password =
+      body?.password != null ? body.password.toString() : null;
 
     const nama_lengkap =
       body?.nama_lengkap != null ? body.nama_lengkap.toString().trim() : null;
@@ -104,15 +97,29 @@ serve(async (req) => {
       });
     }
 
+    // =========================
+    // AUTHORIZATION
+    // =========================
+    const isAdmin = callerRole === "admin";
+    const isSelf = user_id === callerId;
+
+    // non-admin hanya boleh update dirinya sendiri
+    if (!isAdmin && !isSelf) {
+      return new Response(JSON.stringify({ error: "Forbidden: only update your own profile" }), {
+        status: 403,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // validasi input
     if (email !== null && (!email.includes("@") || email.length < 5)) {
       return new Response(JSON.stringify({ error: "Invalid email" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
     }
-
-    if (password !== null && password.length > 0 && password.length < 6) {
-      return new Response(JSON.stringify({ error: "Password minimal 6 karakter" }), {
+    if (password !== null && password.length > 0 && password.length < 8) {
+      return new Response(JSON.stringify({ error: "Password minimal 8 karakter" }), {
         status: 400,
         headers: { "Content-Type": "application/json" },
       });
@@ -120,8 +127,10 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(PROJECT_URL, SERVICE_ROLE_KEY);
 
-    // 1) Update AUTH (email/password) kalau ada
-    if (email !== null || (password !== null && password.length > 0)) {
+    // =========================
+    // 1) Update AUTH (admin only)
+    // =========================
+    if ((email !== null || (password !== null && password.length > 0))) {
       const payload: { email?: string; password?: string } = {};
       if (email !== null) payload.email = email;
       if (password !== null && password.length > 0) payload.password = password;
@@ -137,13 +146,18 @@ serve(async (req) => {
       }
     }
 
-    // 2) Update PROFILES (nama/no_hp/foto) kalau ada
+    // =========================
+    // 2) Update PROFILES (admin: siapa pun, user: diri sendiri)
+    // =========================
     const upd: Record<string, unknown> = {};
-    if (email !== null) upd["email"] = email; // sync ke profiles.email
+
+    if (email !== null) upd["email"] = email;
+
+    // semua role (self) boleh update ini
     if (nama_lengkap !== null) upd["nama_lengkap"] = nama_lengkap;
     if (no_hp !== null) upd["no_hp"] = no_hp;
 
-    // foto_profile: kalau kamu kirim null -> set null, kalau undefined -> jangan diubah
+    // foto_profile: null boleh (hapus foto), undefined artinya tidak diubah
     if (foto_profile !== undefined) {
       upd["foto_profile"] = foto_profile;
     }

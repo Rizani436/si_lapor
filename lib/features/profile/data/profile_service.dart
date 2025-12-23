@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile_model.dart';
+import '../../../../core/supabase_client.dart';
 
 class ProfileService {
   final SupabaseClient _db;
@@ -17,7 +18,78 @@ class ProfileService {
     return ProfileModel.fromJson(data);
   }
 
-  Future<ProfileModel> updateProfile(String userId, Map<String, dynamic> patch) async {
+  Future<ProfileModel> updateProfile(
+    String userId,
+    Map<String, dynamic> patch,
+  ) async {
+    final data = await _db
+        .from('profiles')
+        .update(patch)
+        .eq('id', userId)
+        .select('id, role, is_active, foto_profile, nama_lengkap, email, no_hp')
+        .single();
+
+    return ProfileModel.fromJson(data);
+  }
+
+  Future<ProfileModel> updateEmail(
+    String id,
+    String email
+  ) async {
+    await supabase.functions.invoke(
+      'update-user',
+      body: {
+        'user_id': id,
+        'email': email,
+      },
+    );
+
+    // 2) Update profiles (data tampilan)
+    final res = await _db
+        .from('profiles')
+        .update({'email': email})
+        .eq('id', id)
+        .select()
+        .single();
+
+    return ProfileModel.fromJson(res);
+  }
+
+  Future<void> changeMyEmail(String email) async {
+  await supabase.auth.updateUser(
+    UserAttributes(email: email),
+  );
+}
+
+
+  
+
+  Future<ProfileModel> updateNoHP(
+    String userId,
+    Map<String, dynamic> patch,
+  ) async {
+    await supabase.functions.invoke(
+      'update-user',
+      body: {'user_id': userId, 'no_hp': patch['no_hp']},
+    );
+    final data = await _db
+        .from('profiles')
+        .update(patch)
+        .eq('id', userId)
+        .select('id, role, is_active, foto_profile, nama_lengkap, email, no_hp')
+        .single();
+
+    return ProfileModel.fromJson(data);
+  }
+
+  Future<ProfileModel> updatePassword(
+    String userId,
+    Map<String, dynamic> patch,
+  ) async {
+    await supabase.functions.invoke(
+      'update-user',
+      body: {'user_id': userId, 'password': patch['password']},
+    );
     final data = await _db
         .from('profiles')
         .update(patch)
@@ -33,11 +105,6 @@ class ProfileService {
     await _db.auth.updateUser(UserAttributes(password: newPassword));
   }
 
-  /// Ubah email (opsional) - biasanya butuh konfirmasi email
-  Future<void> changeEmail(String newEmail) async {
-    await _db.auth.updateUser(UserAttributes(email: newEmail));
-  }
-
   /// Upload avatar ke Storage dan update profiles.foto_profile
   /// BUTUH bucket: "avatars" (public atau signed URL)
   Future<ProfileModel> uploadAvatar({
@@ -45,21 +112,42 @@ class ProfileService {
     required Uint8List bytes,
     required String originalFilename,
   }) async {
-    final ext = p.extension(originalFilename).isNotEmpty
-        ? p.extension(originalFilename)
+    final ext = p.extension(originalFilename).toLowerCase();
+    final safeExt =
+        (ext == '.png' || ext == '.jpg' || ext == '.jpeg' || ext == '.webp')
+        ? ext
         : '.jpg';
 
-    final filePath = 'profile/$userId/avatar${ext.toLowerCase()}';
+    final filePath = 'profile/$userId/avatar$safeExt';
 
-    await _db.storage.from('avatars').uploadBinary(
+    await _db.storage
+        .from('fotoprofile') // ✅ bucket kamu
+        .uploadBinary(
           filePath,
           bytes,
-          fileOptions: const FileOptions(upsert: true),
+          fileOptions: FileOptions(
+            upsert: true,
+            contentType: _contentTypeFromExt(safeExt),
+          ),
         );
 
-    // kalau bucket public:
-    final publicUrl = _db.storage.from('avatars').getPublicUrl(filePath);
+    // ✅ bucket public: URL publik permanen
+    final publicUrl = _db.storage.from('fotoprofile').getPublicUrl(filePath);
 
+    // ✅ simpan URL saja ke kolom foto_profile
     return updateProfile(userId, {'foto_profile': publicUrl});
+  }
+
+  String _contentTypeFromExt(String ext) {
+    switch (ext) {
+      case '.png':
+        return 'image/png';
+      case '.webp':
+        return 'image/webp';
+      case '.jpeg':
+      case '.jpg':
+      default:
+        return 'image/jpeg';
+    }
   }
 }

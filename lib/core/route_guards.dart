@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../features/auth/pages/login_page.dart';
 import 'routes.dart';
 import 'session_provider.dart';
 
@@ -20,34 +18,54 @@ class GuardedPage extends ConsumerStatefulWidget {
 }
 
 class _GuardedPageState extends ConsumerState<GuardedPage> {
-  bool _redirecting = false;
-
-  void _redirectToGateOnce() {
-    if (_redirecting) return;
-    _redirecting = true;
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      Navigator.pushNamedAndRemoveUntil(context, Routes.gate, (_) => false);
-    });
-  }
+  bool _redirected = false;
 
   @override
   Widget build(BuildContext context) {
     final session = ref.watch(sessionProvider);
 
-    if (!session.isLoggedIn) return const LoginPage();
-
-    if (session.role == null) {
+    // Belum login -> arahkan ke login (sekali)
+    if (!session.isLoggedIn) {
+      _scheduleRedirect(context, Routes.login);
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    if (!widget.allowedRoles.contains(session.role)) {
-      _redirectToGateOnce();
+    final role = (session.role ?? 'parent').toLowerCase();
+
+    // Role tidak sesuai -> arahkan ke dashboard role masing-masing (sekali)
+    if (!widget.allowedRoles.map((e) => e.toLowerCase()).contains(role)) {
+      final target = _dashboardRouteByRole(role);
+      _scheduleRedirect(context, target);
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    _redirecting = false;
+    // Role sesuai -> tampilkan halaman
+    _redirected = false; // reset jika sudah aman
     return widget.child;
+  }
+
+  void _scheduleRedirect(BuildContext context, String route) {
+    if (_redirected) return;
+    _redirected = true;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Pakai pushNamedAndRemoveUntil agar tidak numpuk halaman
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (_) => false);
+    });
+  }
+
+  String _dashboardRouteByRole(String role) {
+    switch (role) {
+      case 'admin':
+        return Routes.admin;
+      case 'guru':
+        return Routes.guru;
+      case 'kepsek':
+        return Routes.kepsek;
+      case 'parent':
+      default:
+        return Routes.parent;
+    }
   }
 }
