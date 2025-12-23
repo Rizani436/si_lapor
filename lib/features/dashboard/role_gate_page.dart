@@ -20,7 +20,6 @@ class _RoleGatePageState extends ConsumerState<RoleGatePage> {
       _scheduleRedirect(next);
     });
 
-    // juga cek awal setelah build pertama
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _scheduleRedirect(ref.read(sessionProvider));
     });
@@ -28,7 +27,7 @@ class _RoleGatePageState extends ConsumerState<RoleGatePage> {
 
   @override
   void dispose() {
-    _sub.close(); // ✅
+    _sub.close(); 
     super.dispose();
   }
 
@@ -65,7 +64,6 @@ class _RoleGatePageState extends ConsumerState<RoleGatePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Jangan ada Navigator / SnackBar / Dialog di build
     return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }

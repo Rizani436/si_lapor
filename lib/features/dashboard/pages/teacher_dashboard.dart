@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/ui/app_scaffold.dart';
+import '../../../core/ui/app_scaffold.dart';
 
 class TeacherDashboard extends StatelessWidget {
   const TeacherDashboard({super.key});

@@ -82,12 +82,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                         }
 
                         try {
-                          // ✅ login (kalau salah akan throw)
                           await ref
                               .read(authControllerProvider.notifier)
                               .login(email, pass);
-
-                          // ✅ refresh profile boleh gagal, tapi login tetap lanjut
                           try {
                             await ref
                                 .read(sessionProvider.notifier)

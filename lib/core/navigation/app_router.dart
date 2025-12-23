@@ -4,10 +4,10 @@ import 'routes.dart';
 import 'route_guards.dart';
 
 import '../../features/dashboard/role_gate_page.dart';
-import '../../features/dashboard/admin_dashboard.dart';
-import '../../features/dashboard/teacher_dashboard.dart';
-import '../../features/dashboard/parent_dashboard.dart';
-import '../../features/dashboard/kepsek_dashboard.dart';
+import '../../features/dashboard/pages/admin_dashboard.dart';
+import '../../features/dashboard/pages/teacher_dashboard.dart';
+import '../../features/dashboard/pages/parent_dashboard.dart';
+import '../../features/dashboard/pages/kepsek_dashboard.dart';
 import '../../features/notifications/notifications_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/register_page.dart';

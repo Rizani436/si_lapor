@@ -29,7 +29,7 @@ class AuthController extends AsyncNotifier<void> {
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
-      rethrow; // ✅ IMPORTANT: biar UI bisa SnackBar
+      rethrow;
     }
   }
 
@@ -40,7 +40,7 @@ class AuthController extends AsyncNotifier<void> {
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
-      rethrow; // ✅ IMPORTANT
+      rethrow; 
     }
   }
 }

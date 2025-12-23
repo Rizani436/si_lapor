@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/ui/app_scaffold.dart';
+import '../../../core/ui/app_scaffold.dart';
 
 class KepsekDashboard extends StatelessWidget {
   const KepsekDashboard({super.key});

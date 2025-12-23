@@ -32,7 +32,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   void initState() {
     super.initState();
 
-    // ✅ LISTENER CUMA DI SINI (JANGAN DI BUILD)
     _authSub = ref.listenManual<AsyncValue<void>>(authControllerProvider, (prev, next) {
       next.whenOrNull(
         data: (_) {
@@ -44,7 +43,6 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
             const SnackBar(content: Text('Register berhasil ✅ Silakan login.')),
           );
 
-          // ✅ reset provider biar state bersih (penting!)
           ref.invalidate(authControllerProvider);
 
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -115,7 +113,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 hintText: '81234567890',
               ),
               onChanged: (phone) {
-                phoneE164 = phone.completeNumber; // +62812...
+                phoneE164 = phone.completeNumber;
               },
             ),
 
@@ -206,7 +204,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
                         final hpOnly = _digitsOnly(phoneE164!);
 
-                        _handled = false; // reset handler
+                        _handled = false; 
                         ref.read(authControllerProvider.notifier).register(
                               namaLengkap: nama,
                               noHp: hpOnly,

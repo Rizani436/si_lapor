@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../core/ui/app_scaffold.dart';
+import '../../../core/ui/app_scaffold.dart';
 
 class AdminDashboard extends StatelessWidget {
   const AdminDashboard({super.key});

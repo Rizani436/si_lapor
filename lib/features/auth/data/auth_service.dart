@@ -33,7 +33,6 @@ class AuthRepository {
         throw Exception('Login gagal. Email atau password salah.');
       }
     } catch (e) {
-      // ✅ tampilkan error asli Supabase
       throw Exception('Login gagal: $e');
     }
   }
