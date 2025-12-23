@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/session_provider.dart';
+import '../../../core/session/session_provider.dart';
 import '../data/profile_service.dart';
 import '../models/profile_model.dart';
 

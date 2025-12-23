@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/gestures.dart';
 
 import '../providers/auth_provider.dart';
-import '../../../core/session_provider.dart';
-import '../../../core/routes.dart';
+import '../../../core/session/session_provider.dart';
+import '../../../core/navigation/routes.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});

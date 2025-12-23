@@ -1,4 +1,4 @@
-import '../../../core/supabase_client.dart';
+import '../../../core/config/supabase_client.dart';
 
 class AuthRepository {
   Future<void> register({

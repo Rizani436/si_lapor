@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/app_router.dart';
-import 'core/routes.dart';
-import 'core/supabase_client.dart';
-import 'core/messenger_key.dart';
-import 'core/navigator_key.dart'; // ✅ tambah ini
+import 'core/navigation/app_router.dart';
+import 'core/navigation/routes.dart';
+import 'core/config/supabase_client.dart';
+import 'core/navigation/messenger_key.dart';
+import 'core/navigation/navigator_key.dart'; // ✅ tambah ini
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

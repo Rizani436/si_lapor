@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../core/routes.dart';
-import '../../core/session_provider.dart';
+import '../../core/navigation/routes.dart';
+import '../../core/session/session_provider.dart';
 
 class RoleGatePage extends ConsumerStatefulWidget {
   const RoleGatePage({super.key});

@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req) => {
-  // CORS
+
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -41,7 +41,6 @@ serve(async (req) => {
       });
     }
 
-    // client pemanggil (pakai token user)
     const supabaseUserClient = createClient(PROJECT_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -56,7 +55,6 @@ serve(async (req) => {
 
     const callerId = userData.user.id;
 
-    // ambil role caller
     const { data: callerProfile, error: callerProfileErr } = await supabaseUserClient
       .from("profiles")
       .select("role")
@@ -72,7 +70,6 @@ serve(async (req) => {
 
     const callerRole = (callerProfile?.role ?? "parent").toString();
 
-    // input
     const body = await req.json();
     const user_id = (body?.user_id ?? "").toString().trim();
 
@@ -97,13 +94,9 @@ serve(async (req) => {
       });
     }
 
-    // =========================
-    // AUTHORIZATION
-    // =========================
     const isAdmin = callerRole === "admin";
     const isSelf = user_id === callerId;
 
-    // non-admin hanya boleh update dirinya sendiri
     if (!isAdmin && !isSelf) {
       return new Response(JSON.stringify({ error: "Forbidden: only update your own profile" }), {
         status: 403,
@@ -111,7 +104,6 @@ serve(async (req) => {
       });
     }
 
-    // validasi input
     if (email !== null && (!email.includes("@") || email.length < 5)) {
       return new Response(JSON.stringify({ error: "Invalid email" }), {
         status: 400,

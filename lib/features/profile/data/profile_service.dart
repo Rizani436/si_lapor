@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/profile_model.dart';
-import '../../../../core/supabase_client.dart';
+import '../../../core/config/supabase_client.dart';
 
 class ProfileService {
   final SupabaseClient _db;

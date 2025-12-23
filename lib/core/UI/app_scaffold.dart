@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../routes.dart';
-import '../session_provider.dart';
-import '../navigator_key.dart'; // ✅ sesuaikan path: core/navigator_key.dart
+import '../navigation/routes.dart';
+import '../session/session_provider.dart';
+import '../navigation/navigator_key.dart'; 
 
 class AppScaffold extends ConsumerWidget {
   final String title;
@@ -40,17 +40,16 @@ class AppScaffold extends ConsumerWidget {
   }
 
   void _navTo(String route) {
-    // ✅ Tutup drawer pakai navigator global (pop top route = drawer)
+
     navigatorKey.currentState?.pop();
 
-    // ✅ Push route pakai navigator global (tanpa context)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       navigatorKey.currentState?.pushNamed(route);
     });
   }
 
   Future<void> _logout(WidgetRef ref) async {
-    // tutup drawer
+
     navigatorKey.currentState?.pop();
 
     await ref.read(sessionProvider.notifier).logout();

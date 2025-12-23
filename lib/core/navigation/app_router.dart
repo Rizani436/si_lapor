@@ -3,18 +3,18 @@ import 'package:si_lapor/features/siswa/pages/siswa_list_page.dart';
 import 'routes.dart';
 import 'route_guards.dart';
 
-import '../features/dashboard/role_gate_page.dart';
-import '../features/dashboard/admin_dashboard.dart';
-import '../features/dashboard/teacher_dashboard.dart';
-import '../features/dashboard/parent_dashboard.dart';
-import '../features/dashboard/kepsek_dashboard.dart';
-import '../features/notifications/notifications_page.dart';
-import '../features/auth/pages/login_page.dart';
-import '../features/auth/pages/register_page.dart';
-import '../features/akun/pages/akun_list_page.dart';
-import '../features/guru/pages/guru_list_page.dart';
-import '../features/kelas/pages/kelas_list_page.dart';
-import '../features/profile/pages/profile_page.dart';
+import '../../features/dashboard/role_gate_page.dart';
+import '../../features/dashboard/admin_dashboard.dart';
+import '../../features/dashboard/teacher_dashboard.dart';
+import '../../features/dashboard/parent_dashboard.dart';
+import '../../features/dashboard/kepsek_dashboard.dart';
+import '../../features/notifications/notifications_page.dart';
+import '../../features/auth/pages/login_page.dart';
+import '../../features/auth/pages/register_page.dart';
+import '../../features/akun/pages/akun_list_page.dart';
+import '../../features/guru/pages/guru_list_page.dart';
+import '../../features/kelas/pages/kelas_list_page.dart';
+import '../../features/profile/pages/profile_page.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {

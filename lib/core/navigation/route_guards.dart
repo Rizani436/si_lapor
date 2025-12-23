@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'routes.dart';
-import 'session_provider.dart';
+import '../session/session_provider.dart';
 
 class GuardedPage extends ConsumerStatefulWidget {
   final List<String> allowedRoles;

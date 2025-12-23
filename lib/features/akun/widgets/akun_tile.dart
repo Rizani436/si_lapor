@@ -4,7 +4,7 @@ import '../models/akun_model.dart';
 class AkunTile extends StatelessWidget {
   final AkunModel p;
   final VoidCallback onTap;
-  final Future<void> Function() onDelete; // 🔧 ubah
+  final Future<void> Function() onDelete;
   final VoidCallback onToggleAktif;
 
   const AkunTile({

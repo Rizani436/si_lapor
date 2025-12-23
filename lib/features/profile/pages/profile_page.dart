@@ -1,18 +1,13 @@
 import 'dart:typed_data';
-import 'dart:io';
-import 'dart:typed_data';
 import 'package:image_picker/image_picker.dart';
-import 'package:image_cropper/image_cropper.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:intl_phone_field/countries.dart';
-import '../../../core/routes.dart';
-import '../../../core/session_provider.dart';
-import '../../../core/ui_helpers.dart'; // ✅
+import '../../../core/navigation/routes.dart';
+import '../../../core/session/session_provider.dart';
+import '../../../core/UI/ui_helpers.dart'; // ✅
 import '../providers/profile_provider.dart';
 import '../providers/profile_action_provider.dart';
 

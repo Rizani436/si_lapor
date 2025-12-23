@@ -4,7 +4,7 @@ import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:flutter/gestures.dart';
 
 import '../providers/auth_provider.dart';
-import '../../../core/routes.dart';
+import '../../../core/navigation/routes.dart';
 
 class RegisterPage extends ConsumerStatefulWidget {
   const RegisterPage({super.key});

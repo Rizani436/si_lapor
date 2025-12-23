@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:intl_phone_field/countries.dart';
 
 import '../models/akun_model.dart';
 import '../providers/akun_provider.dart';
+import '../../../core/utils/phone_utils.dart';
+import '../../../core/UI/ui_helpers.dart';
 
 class AkunFormPage extends ConsumerStatefulWidget {
   final AkunModel? existing;
@@ -64,61 +65,6 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
     super.dispose();
   }
 
-  Future<void> safeClosePage(BuildContext rootContext) async {
-    FocusManager.instance.primaryFocus?.unfocus();
-    await Future.delayed(const Duration(milliseconds: 30));
-
-    if (!mounted) return;
-    if (Navigator.of(rootContext).canPop()) {
-      Navigator.of(rootContext).pop(true);
-    }
-  }
-
-  void showSnackRoot(BuildContext rootContext, String msg) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!rootContext.mounted) return;
-      ScaffoldMessenger.of(
-        rootContext,
-      ).showSnackBar(SnackBar(content: Text(msg)));
-    });
-  }
-
-  String removeDialCode(String phone, String dial) {
-    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
-    final dialDigits = dial.replaceAll('+', '');
-
-    if (digits.startsWith(dialDigits)) {
-      return digits.substring(dialDigits.length);
-    }
-    return digits; 
-  }
-
-  String detectIsoFromPhone(String phone) {
-    final dial = detectDialCode(phone);
-    if (dial == null) return 'ID';
-
-    final clean = dial.replaceAll('+', '');
-    try {
-      return countries.firstWhere((c) => c.dialCode == clean).code;
-    } catch (_) {
-      return 'ID';
-    }
-  }
-
-  String? detectDialCode(String phone) {
-    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
-
-    final dialCodes = countries.map((c) => c.dialCode).toSet().toList()
-      ..sort((a, b) => b.length.compareTo(a.length));
-
-    for (final dial in dialCodes) {
-      if (digits.startsWith(dial)) {
-        return '+$dial';
-      }
-    }
-    return null; 
-  }
-
   @override
   Widget build(BuildContext context) {
     final rootContext = context;
@@ -126,7 +72,7 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
 
     return PopScope(
       canPop: !saving,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
         if (saving) return;
         await safeClosePage(rootContext);
@@ -179,21 +125,17 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                     border: OutlineInputBorder(),
                     hintText: '81234567890',
                   ),
-
                   onCountryChanged: (country) {
                     setState(() {
                       _dialCode = '+${country.dialCode}';
                       _phoneNumberOnly = _phoneInputC.text.trim();
                     });
                   },
-
                   onChanged: (phone) {
                     _phoneNumberOnly = phone.number;
                     _dialCode = phone.countryCode;
-
                     _isoCode = phone.countryISOCode;
                   },
-
                   validator: (phone) {
                     if (phone == null || phone.number.trim().isEmpty) {
                       return 'Wajib diisi';
@@ -201,9 +143,7 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                     return null;
                   },
                 ),
-
                 const SizedBox(height: 12),
-
                 TextFormField(
                   controller: passwordC,
                   enabled: !saving,
@@ -268,7 +208,6 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                     ],
                   ),
                 ],
-
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 48,
@@ -279,28 +218,20 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                             if (!(_formKey.currentState?.validate() ?? false)) {
                               return;
                             }
-
                             final email = emailC.text.trim();
                             final nama = namaLengkapC.text.trim();
                             final pass = passwordC.text; 
-                            String digitsOnly(String s) =>
-                                s.replaceAll(RegExp(r'[^0-9]'), '');
                             final hpOnlyRaw = _phoneNumberOnly.trim().isNotEmpty
                                 ? _phoneNumberOnly.trim()
                                 : _phoneInputC.text
                                       .trim(); 
 
                             final hpOnly = digitsOnly(hpOnlyRaw);
-
-
                             final hpFullNoPlus = digitsOnly(
                               '$_dialCode$hpOnly',
                             ); 
-
                             setState(() => saving = true);
-
                             if (!isEdit) {
-
                               try {
                                 final payload = AkunModel(
                                   id: '', 
@@ -310,7 +241,6 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                                   role: role,
                                   isActive: aktif,
                                 );
-
                                 await ref
                                     .read(akunListProvider.notifier)
                                     .add(payload, pass);
@@ -331,7 +261,6 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                                 if (mounted) setState(() => saving = false);
                               }
                             } else {
-
                               final akun = widget.existing!;
                               try {
                                 final payload = akun.copyWith(
@@ -341,7 +270,6 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                                   role: role,
                                   isActive: aktif,
                                 );
-
                                 await ref
                                     .read(akunListProvider.notifier)
                                     .edit(akun.id, payload, newPassword: pass);

@@ -1,8 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../../core/session_provider.dart';
-import '../../../core/supabase_client.dart';
+import '../../../core/session/session_provider.dart';
+import '../../../core/config/supabase_client.dart';
 
 
 final profileActionProvider =

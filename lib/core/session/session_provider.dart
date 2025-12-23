@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'supabase_client.dart';
+import '../config/supabase_client.dart';
 
 class SessionState {
   final bool isLoggedIn;
@@ -92,7 +92,6 @@ class SessionController extends Notifier<SessionState> {
         return;
       }
 
-      // pertahankan avatarVersion biar cache-busting tetap konsisten
       final prevVersion = state.avatarVersion;
 
       state = SessionState(
@@ -140,7 +139,6 @@ class SessionController extends Notifier<SessionState> {
       final newFoto = data?['foto_profile'] as String?;
       final oldFoto = state.fotoProfile;
 
-      // ✅ kalau URL foto berubah, naikkan versi supaya UI reload gambar
       final nextVersion =
           (newFoto != null && newFoto.isNotEmpty && newFoto != oldFoto)
           ? state.avatarVersion + 1
@@ -156,7 +154,7 @@ class SessionController extends Notifier<SessionState> {
         avatarVersion: nextVersion,
       );
     } catch (e) {
-      // jangan reset avatarVersion biar UI tetap stabil
+
       state = SessionState(
         isLoggedIn: true,
         userId: user.id,
