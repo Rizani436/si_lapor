@@ -44,7 +44,6 @@ class ProfileService {
       },
     );
 
-    // 2) Update profiles (data tampilan)
     final res = await _db
         .from('profiles')
         .update({'email': email})
@@ -60,10 +59,6 @@ class ProfileService {
     UserAttributes(email: email),
   );
 }
-
-
-  
-
   Future<ProfileModel> updateNoHP(
     String userId,
     Map<String, dynamic> patch,
@@ -100,13 +95,10 @@ class ProfileService {
     return ProfileModel.fromJson(data);
   }
 
-  /// Ubah password (Supabase Auth)
   Future<void> changePassword(String newPassword) async {
     await _db.auth.updateUser(UserAttributes(password: newPassword));
   }
 
-  /// Upload avatar ke Storage dan update profiles.foto_profile
-  /// BUTUH bucket: "avatars" (public atau signed URL)
   Future<ProfileModel> uploadAvatar({
     required String userId,
     required Uint8List bytes,
@@ -121,7 +113,7 @@ class ProfileService {
     final filePath = 'profile/$userId/avatar$safeExt';
 
     await _db.storage
-        .from('fotoprofile') // ✅ bucket kamu
+        .from('fotoprofile')
         .uploadBinary(
           filePath,
           bytes,
@@ -131,10 +123,7 @@ class ProfileService {
           ),
         );
 
-    // ✅ bucket public: URL publik permanen
     final publicUrl = _db.storage.from('fotoprofile').getPublicUrl(filePath);
-
-    // ✅ simpan URL saja ke kolom foto_profile
     return updateProfile(userId, {'foto_profile': publicUrl});
   }
 

@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'dart:math';
+import '../../../core/utils/code_generate.dart';
 import '../models/kelas_model.dart';
 
 class KelasService {
@@ -39,7 +39,7 @@ class KelasService {
         .select()
         .single();
     final idKelas = resKelas['id_kelas'];
-    final kodeKelas = 'RK-${generateKodeKelas()}'; // contoh: RK-A9X2P
+    final kodeKelas = 'RK-${generateKodeKelas()}';
 
     final res = await _db
         .from('ruangkelas')
@@ -124,7 +124,6 @@ class KelasService {
   }
 
   Future<void> delete(int idRuangKelas) async {
-    // 1) Ambil id_kelas dari ruangkelas berdasarkan id_ruang_kelas
     final row = await _db
         .from('ruangkelas')
         .select('id_kelas')
@@ -133,20 +132,9 @@ class KelasService {
 
     final int idKelas = (row['id_kelas'] as num).toInt();
 
-    // 2) Hapus ruangkelas dulu (agar tidak kena FK restriction)
     await _db.from('ruangkelas').delete().eq('id_ruang_kelas', idRuangKelas);
 
-    // 3) Hapus kelasalquran (opsional: hanya kalau memang mau hapus kelasnya juga)
     await _db.from('kelasalquran').delete().eq('id_kelas', idKelas);
   }
 
-  String generateKodeKelas({int length = 4}) {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    final rand = Random.secure();
-
-    return List.generate(
-      length,
-      (_) => chars[rand.nextInt(chars.length)],
-    ).join();
-  }
 }

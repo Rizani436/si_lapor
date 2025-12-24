@@ -77,7 +77,6 @@ class ProfileActionNotifier extends AsyncNotifier<void> {
     try {
       await supabase.from('profiles').update({'no_hp': digits}).eq('id', uid);
 
-      // refresh profile biar UI langsung update
       await ref.read(myProfileProvider.notifier).refresh();
 
       state = const AsyncData(null);

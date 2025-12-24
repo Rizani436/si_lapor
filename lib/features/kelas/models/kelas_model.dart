@@ -1,14 +1,10 @@
-/// Model gabungan:
-/// - ruangkelas
-/// - kelasalquran (JOIN)
 class KelasModel {
-  // ===== ruangkelas =====
+
   final int idRuangKelas;
   final int? idKelas;
   final String? kodeKelas;
   final int ketAktif;
 
-  // ===== kelasalquran =====
   final String namaKelas;
   final String tahunPelajaran;
   final int semester;
@@ -27,20 +23,16 @@ class KelasModel {
 
   bool get isAktif => ketAktif == 1;
 
-  // =====================================================
-  // FROM JSON (JOIN ruangkelas + kelasalquran)
-  // =====================================================
   factory KelasModel.fromJson(Map<String, dynamic> json) {
     final kelas = json['kelasalquran'] as Map<String, dynamic>?;
 
     return KelasModel(
-      // ruangkelas
+
       idRuangKelas: (json['id_ruang_kelas'] as num?)?.toInt() ?? 0,
       idKelas: (json['id_kelas'] as num?)?.toInt(),
       kodeKelas: json['kode_kelas'] as String?,
       ketAktif: (json['ket_aktif'] as num?)?.toInt() ?? 1,
 
-      // kelasalquran (JOIN)
       namaKelas: (kelas?['nama_kelas'] as String?) ?? '',
       tahunPelajaran: (kelas?['tahun_pelajaran'] as String?) ?? '',
       semester: (kelas?['semester'] as num?)?.toInt() ?? 1,
@@ -48,9 +40,6 @@ class KelasModel {
     );
   }
 
-  // =====================================================
-  // JSON UNTUK INSERT / UPDATE kelasalquran
-  // =====================================================
   Map<String, dynamic> toKelasInsertJson() => {
         'nama_kelas': namaKelas,
         'tahun_pelajaran': tahunPelajaran,
@@ -58,9 +47,6 @@ class KelasModel {
         'jenis_kelas': jenisKelas,
       };
 
-  // =====================================================
-  // JSON UNTUK INSERT / UPDATE ruangkelas
-  // =====================================================
   Map<String, dynamic> toRuangInsertJson({
     required int idKelas,
     required String kodeKelas,
@@ -71,9 +57,6 @@ class KelasModel {
         'ket_aktif': ketAktif,
       };
 
-  // =====================================================
-  // COPY WITH
-  // =====================================================
   KelasModel copyWith({
     int? idRuangKelas,
     int? idKelas,

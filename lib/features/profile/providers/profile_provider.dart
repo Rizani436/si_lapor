@@ -32,7 +32,6 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
     state = await AsyncValue.guard(
       () => _service.getMyProfile(session.userId!),
     );
-    // sync ke session state (foto/nama/email)
     await ref.read(sessionProvider.notifier).refreshProfile();
   }
 
@@ -67,7 +66,6 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
 
     final clean = email.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
-    // 2) Update kolom email di profiles
     state = const AsyncLoading();
     state = await AsyncValue.guard(
       () => _service.updateEmail(uid, clean),
@@ -90,10 +88,8 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
       ),
     );
 
-    // sync session (ambil URL baru)
     await ref.read(sessionProvider.notifier).refreshProfile();
 
-    // ✅ paksa bust cache di UI (drawer/navbar/profile)
     ref.read(sessionProvider.notifier).bumpAvatarVersion();
   }
 }
