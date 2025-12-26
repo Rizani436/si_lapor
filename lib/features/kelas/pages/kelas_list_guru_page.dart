@@ -5,8 +5,6 @@ import '../providers/kelas_guru_provider.dart';
 import '../widgets/kelas_tile.dart';
 import 'detail_kelas_page.dart';
 import '../pages/kelas_form_page.dart';
-import '../providers/kelas_provider.dart';
-
 class KelasListGuruPage extends ConsumerStatefulWidget {
   const KelasListGuruPage({super.key});
 

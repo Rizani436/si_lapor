@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:si_lapor/core/session/session_provider.dart';
-import '../providers/isiruangkelas_provider.dart';
-import '../providers/isiruangkelas_action_provider.dart';
+import '../providers/isi_ruang_kelas_provider.dart';
 import '../widgets/pilih_siswa_dialog.dart';
 import '../widgets/pilih_guru_dialog.dart';
+import '../../../core/UI/ui_helpers.dart';
 
 class EditIsiKelasPage extends ConsumerWidget {
   final int idRuangKelas;
@@ -61,7 +61,7 @@ class EditIsiKelasPage extends ConsumerWidget {
 
                       try {
                         await ref
-                            .read(isiRuangKelasActionProvider)
+                            .read(isiRuangKelasProvider)
                             .tambahSiswa(
                               idRuangKelas: idRuangKelas,
                               idDataSiswa: picked.idDataSiswa,
@@ -126,7 +126,7 @@ class EditIsiKelasPage extends ConsumerWidget {
 
                         try {
                           await ref
-                              .read(isiRuangKelasActionProvider)
+                              .read(isiRuangKelasProvider)
                               .updateData(
                                 isiruangkelasId: idRuangKelas,
                                 idUserGuru: uid,
@@ -194,7 +194,7 @@ class EditIsiKelasPage extends ConsumerWidget {
 
                         try {
                           await ref
-                              .read(isiRuangKelasActionProvider)
+                              .read(isiRuangKelasProvider)
                               .updateData(
                                 isiruangkelasId: idRuangKelas,
                                 idUserGuru: uid,
@@ -260,7 +260,7 @@ class EditIsiKelasPage extends ConsumerWidget {
                               onPressed: () async {
                                 if (rowId == null) return;
 
-                                final ok = await _confirm(
+                                final ok = await confirm(
                                   context,
                                   title: 'Unlink siswa?',
                                   msg:
@@ -269,7 +269,7 @@ class EditIsiKelasPage extends ConsumerWidget {
                                 if (!ok) return;
 
                                 await ref
-                                    .read(isiRuangKelasActionProvider)
+                                    .read(isiRuangKelasProvider)
                                     .unlinkSiswa(isiruangkelasId: rowId);
 
                                 ref.invalidate(
@@ -285,7 +285,7 @@ class EditIsiKelasPage extends ConsumerWidget {
                             onPressed: () async {
                               if (rowId == null) return;
 
-                              final ok = await _confirm(
+                              final ok = await confirm(
                                 context,
                                 title: 'Delete relasi siswa?',
                                 msg:
@@ -294,7 +294,7 @@ class EditIsiKelasPage extends ConsumerWidget {
                               if (!ok) return;
 
                               await ref
-                                  .read(isiRuangKelasActionProvider)
+                                  .read(isiRuangKelasProvider)
                                   .deleteSiswaRelasi(isiruangkelasId: rowId);
 
                               ref.invalidate(
@@ -313,57 +313,5 @@ class EditIsiKelasPage extends ConsumerWidget {
       ),
     );
   }
-
-  Future<int?> _showInputIdSiswaDialog(BuildContext context) async {
-    final c = TextEditingController();
-    return showDialog<int?>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Tambah Siswa'),
-        content: TextField(
-          controller: c,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(
-            labelText: 'Masukkan id_data_siswa',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, null),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () =>
-                Navigator.pop(context, int.tryParse(c.text.trim())),
-            child: const Text('Tambah'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<bool> _confirm(
-    BuildContext context, {
-    required String title,
-    required String msg,
-  }) async {
-    final res = await showDialog<bool>(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(msg),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Ya'),
-          ),
-        ],
-      ),
-    );
-    return res ?? false;
-  }
+  
 }

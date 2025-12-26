@@ -8,7 +8,6 @@ import 'detail_kelas_siswa_page.dart';
 import '../pages/gabung_kelas_page.dart';
 import '../../laporan/pages/laporan_list_page.dart';
 import '../../siswa/providers/siswa_provider.dart';
-import '../providers/kelas_provider.dart';
 
 class KelasListSiswaPage extends ConsumerStatefulWidget {
   const KelasListSiswaPage({super.key});

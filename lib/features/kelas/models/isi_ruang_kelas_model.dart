@@ -1,4 +1,4 @@
-class IsiRuangKelasNamaModel {
+class IsiRuangKelasModel {
   final int id;
   final int idRuangKelas;
 
@@ -10,7 +10,7 @@ class IsiRuangKelasNamaModel {
   final String? idUserGuru;
   final String? namaGuru;
 
-  IsiRuangKelasNamaModel({
+  IsiRuangKelasModel({
     required this.id,
     required this.idRuangKelas,
     this.idDataSiswa,
@@ -21,11 +21,11 @@ class IsiRuangKelasNamaModel {
     this.namaGuru,
   });
 
-  factory IsiRuangKelasNamaModel.fromJson(Map<String, dynamic> json) {
+  factory IsiRuangKelasModel.fromJson(Map<String, dynamic> json) {
     final siswa = json['siswa'] as Map<String, dynamic>?;
     final guru = json['guru'] as Map<String, dynamic>?;
 
-    return IsiRuangKelasNamaModel(
+    return IsiRuangKelasModel(
       id: json['id'] as int,
       idRuangKelas: json['id_ruang_kelas'] as int,
 

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/gabung_kelas_provider.dart';
 import '../pages/kelas_list_siswa_page.dart';
 import '../providers/kelas_siswa_provider.dart';
+import '../widgets/result_card.dart';
 
 class GabungKelasPage extends ConsumerStatefulWidget {
   const GabungKelasPage({super.key});
@@ -82,7 +83,7 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
-                  child: _ResultCard(st: st, notifier: notifier),
+                  child: ResultCard(st: st, notifier: notifier),
                 ),
               ),
 
@@ -119,8 +120,9 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
                                   content: Text('Berhasil gabung kelas!'),
                                 ),
                               );
-                              await ref.read(kelasSiswaListProvider.notifier).refresh();
-
+                              await ref
+                                  .read(kelasSiswaListProvider.notifier)
+                                  .refresh();
 
                               Navigator.pushReplacement(
                                 context,
@@ -136,69 +138,6 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
           ),
         ),
       ),
-    );
-  }
-}
-
-class _ResultCard extends StatelessWidget {
-  final GabungKelasState st;
-  final GabungKelasNotifier notifier;
-
-  const _ResultCard({required this.st, required this.notifier});
-
-  @override
-  Widget build(BuildContext context) {
-    if (st.error != null) {
-      return Text(
-        'Error:\n${st.error}',
-        style: const TextStyle(color: Colors.red),
-      );
-    }
-
-    if (!st.checked) {
-      return const Text('Masukkan kode kelas lalu tekan "Gabung Kelas".');
-    }
-
-    if (st.notFound) {
-      return const Text(
-        'Kelas tidak ada.',
-        style: TextStyle(fontWeight: FontWeight.w600),
-      );
-    }
-
-    if (st.idRuangKelas == null) {
-      return const Text('Belum ada hasil.');
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Kelas ditemukan ✅ (id_ruang_kelas: ${st.idRuangKelas})',
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 10),
-        const Text(
-          'Pilih salah satu data siswa:',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: 8),
-        if (st.siswaList.isEmpty)
-          const Text('Tidak ada data siswa untuk dipilih.')
-        else
-          ...st.siswaList.map((s) {
-            return RadioListTile<int>(
-              value: s.idDataSiswa,
-              groupValue: st.selectedIdDataSiswa,
-              title: Text(
-                s.namaLengkap.isNotEmpty ? s.namaLengkap : '(Tanpa nama)',
-              ),
-              onChanged: (v) {
-                if (v != null) notifier.pilihSiswa(v);
-              },
-            );
-          }),
-      ],
     );
   }
 }

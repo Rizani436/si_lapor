@@ -1,16 +1,24 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../models/siswa_pick.dart';
+import '../data/gabung_kelas_service.dart';
+
+final gabungKelasServiceProvider = Provider<GabungKelasService>((ref) {
+  final sb = Supabase.instance.client;
+  return GabungKelasService(sb);
+});
+
 final gabungKelasProvider =
     NotifierProvider<GabungKelasNotifier, GabungKelasState>(
-      GabungKelasNotifier.new,
-    );
+  GabungKelasNotifier.new,
+);
 
 class GabungKelasState {
   final bool loading;
   final String? error;
 
-  final bool checked; 
+  final bool checked;
   final bool notFound;
 
   final int? idRuangKelas;
@@ -53,26 +61,13 @@ class GabungKelasState {
   }
 }
 
-class SiswaPick {
-  final int idDataSiswa;
-  final String namaLengkap;
-
-  const SiswaPick({required this.idDataSiswa, required this.namaLengkap});
-
-  factory SiswaPick.fromJson(Map<String, dynamic> json) {
-    final siswa = json['siswa'] as Map<String, dynamic>?;
-    return SiswaPick(
-      idDataSiswa: (json['id_data_siswa'] as num).toInt(),
-      namaLengkap: (siswa?['nama_lengkap'] ?? '').toString(),
-    );
-  }
-}
-
 class GabungKelasNotifier extends Notifier<GabungKelasState> {
   SupabaseClient get _sb => Supabase.instance.client;
 
   @override
   GabungKelasState build() => const GabungKelasState();
+
+  GabungKelasService get _service => ref.read(gabungKelasServiceProvider);
 
   Future<void> cekKodeKelas(String kode) async {
     final clean = kode.trim().toUpperCase();
@@ -90,11 +85,7 @@ class GabungKelasNotifier extends Notifier<GabungKelasState> {
     );
 
     try {
-      final ruang = await _sb
-          .from('ruangkelas')
-          .select('id_ruang_kelas,kode_kelas')
-          .eq('kode_kelas', clean)
-          .maybeSingle();
+      final ruang = await _service.getRuangByKode(clean);
 
       if (ruang == null) {
         state = state.copyWith(loading: false, notFound: true);
@@ -102,32 +93,7 @@ class GabungKelasNotifier extends Notifier<GabungKelasState> {
       }
 
       final idRuangKelas = (ruang['id_ruang_kelas'] as num).toInt();
-
-      final siswaRes = await _sb
-          .from('isiruangkelas')
-          .select('''
-      id_data_siswa,
-      datasiswa (
-        nama_lengkap
-      )
-    ''')
-          .eq('id_ruang_kelas', idRuangKelas)
-          .filter('id_user_siswa', 'is', null);
-
-      final list = (siswaRes as List)
-          .map((e) {
-            final m = e as Map<String, dynamic>;
-
-            final idDataSiswa = m['id_data_siswa'];
-            if (idDataSiswa == null) return null; 
-
-            return SiswaPick(
-              idDataSiswa: idDataSiswa as int,
-              namaLengkap: m['datasiswa']?['nama_lengkap'] ?? '',
-            );
-          })
-          .whereType<SiswaPick>()
-          .toList();
+      final list = await _service.getSiswaKosongByRuang(idRuangKelas);
 
       state = state.copyWith(
         loading: false,
@@ -165,20 +131,16 @@ class GabungKelasNotifier extends Notifier<GabungKelasState> {
     state = state.copyWith(loading: true, error: null);
 
     try {
-      final res = await _sb
-          .from('isiruangkelas')
-          .update({'id_user_siswa': userId})
-          .eq('id_ruang_kelas', idRuangKelas)
-          .eq('id_data_siswa', idDataSiswa)
-          .filter('id_user_siswa', 'is', null);
-
+      await _service.gabungKelas(
+        idRuangKelas: idRuangKelas,
+        idDataSiswa: idDataSiswa,
+        userId: userId,
+      );
       state = state.copyWith(loading: false);
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());
     }
   }
 
-  void reset() {
-    state = const GabungKelasState(); 
-  }
+  void reset() => state = const GabungKelasState();
 }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kelas_model.dart';
-import '../providers/isiruangkelas_provider.dart';
+import '../providers/isi_ruang_kelas_provider.dart';
 import 'edit_isi_kelas_page.dart';
 import '../../laporan/pages/laporan_siswa_list_page.dart';
 import '../../siswa/providers/siswa_provider.dart';
@@ -139,8 +139,7 @@ class _DetailKelasPageState extends ConsumerState<DetailKelasPage> {
                       if (idRuangKelas == null)
                         const Text('ID kelas tidak ditemukan.')
                       else
-                        ref
-                            .watch(isiRuangKelasNamaProvider(idRuangKelas))
+                        ref.watch(isiRuangKelasNamaProvider(idRuangKelas))
                             .when(
                               loading: () => const Center(
                                 child: Padding(

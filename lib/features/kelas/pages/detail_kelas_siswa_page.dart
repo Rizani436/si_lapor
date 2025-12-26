@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kelas_model.dart';
-import '../providers/isiruangkelas_provider.dart';
-import 'edit_isi_kelas_page.dart';
-import '../../laporan/pages/laporan_siswa_list_page.dart';
-import '../../siswa/providers/siswa_provider.dart';
+import '../providers/isi_ruang_kelas_provider.dart';
 
 class DetailKelasSiswaPage extends ConsumerStatefulWidget {
   final KelasModel? existing;

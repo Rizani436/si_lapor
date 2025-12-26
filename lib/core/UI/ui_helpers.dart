@@ -369,3 +369,28 @@ Future<AvatarAction?> showAvatarActionDialog(BuildContext context) {
     ),
   );
 }
+
+Future<bool> confirm(
+    BuildContext context, {
+    required String title,
+    required String msg,
+  }) async {
+    final res = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(msg),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Ya'),
+          ),
+        ],
+      ),
+    );
+    return res ?? false;
+  }
