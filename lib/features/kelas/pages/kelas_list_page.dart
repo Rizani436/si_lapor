@@ -5,6 +5,8 @@ import '../models/kelas_model.dart';
 import '../providers/kelas_provider.dart';
 import '../widgets/kelas_tile.dart';
 import 'kelas_form_page.dart';
+import 'detail_kelas_page.dart';
+import '../providers/kelas_guru_provider.dart';
 
 class KelasListPage extends ConsumerStatefulWidget {
   const KelasListPage({super.key});
@@ -81,7 +83,7 @@ class _KelasListPageState extends ConsumerState<KelasListPage> {
                     onChanged: (_) => setState(() {}),
                     decoration: const InputDecoration(
                       prefixIcon: Icon(Icons.search),
-                      hintText: 'Cari nama / NIP...',
+                      hintText: 'Cari nama kelas / kode',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -243,11 +245,20 @@ class _KelasListPageState extends ConsumerState<KelasListPage> {
                       s.namaKelas.toLowerCase().contains(q) ||
                       (s.kodeKelas ?? '').toLowerCase().contains(q);
 
+                  final okTahunPelajaran =
+                      _filterTahunPelajaran == null ||
+                      s.tahunPelajaran == _filterTahunPelajaran;
+                  final okSemester =
+                      _filterSemester == null || s.semester == _filterSemester;
                   final okJk = _filterJk == null || s.jenisKelas == _filterJk;
                   final okStatus =
                       _filterStatus == null || s.ketAktif == _filterStatus;
 
-                  return okSearch && okJk && okStatus;
+                  return okSearch &&
+                      okJk &&
+                      okStatus &&
+                      okTahunPelajaran &&
+                      okSemester;
                 }).toList();
 
                 if (filtered.isEmpty) {
@@ -262,6 +273,17 @@ class _KelasListPageState extends ConsumerState<KelasListPage> {
                     return KelasTile(
                       s: s,
                       onTap: () async {
+                        final ok = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => DetailKelasPage(existing: s),
+                          ),
+                        );
+                        if (ok == true && context.mounted) {
+                          ref.read(kelasGuruListProvider.notifier).refresh();
+                        }
+                      },
+                      onEdit: () async {
                         final ok = await Navigator.push<bool>(
                           context,
                           MaterialPageRoute(

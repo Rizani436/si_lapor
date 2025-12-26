@@ -32,16 +32,10 @@ class ProfileService {
     return ProfileModel.fromJson(data);
   }
 
-  Future<ProfileModel> updateEmail(
-    String id,
-    String email
-  ) async {
+  Future<ProfileModel> updateEmail(String id, String email) async {
     await supabase.functions.invoke(
       'update-user',
-      body: {
-        'user_id': id,
-        'email': email,
-      },
+      body: {'user_id': id, 'email': email},
     );
 
     final res = await _db
@@ -55,10 +49,9 @@ class ProfileService {
   }
 
   Future<void> changeMyEmail(String email) async {
-  await supabase.auth.updateUser(
-    UserAttributes(email: email),
-  );
-}
+    await supabase.auth.updateUser(UserAttributes(email: email));
+  }
+
   Future<ProfileModel> updateNoHP(
     String userId,
     Map<String, dynamic> patch,
@@ -138,5 +131,23 @@ class ProfileService {
       default:
         return 'image/jpeg';
     }
+  }
+
+  Future<ProfileModel> removeAvatar({required String userId}) async {
+    final paths = [
+      'profile/$userId/avatar.jpg',
+      'profile/$userId/avatar.jpeg',
+      'profile/$userId/avatar.png',
+      'profile/$userId/avatar.webp',
+    ];
+
+
+    try {
+      await _db.storage.from('fotoprofile').remove(paths);
+    } catch (_) {
+
+    }
+
+    return updateProfile(userId, {'foto_profile': null});
   }
 }

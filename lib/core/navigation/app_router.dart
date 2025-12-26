@@ -15,6 +15,8 @@ import '../../features/akun/pages/akun_list_page.dart';
 import '../../features/guru/pages/guru_list_page.dart';
 import '../../features/kelas/pages/kelas_list_page.dart';
 import '../../features/profile/pages/profile_page.dart';
+import '../../features/kelas/pages/kelas_list_guru_page.dart';
+import '../../features/kelas/pages/kelas_list_siswa_page.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -62,6 +64,14 @@ class AppRouter {
           ),
         );
 
+      case Routes.guruKelas:
+        return MaterialPageRoute(
+          builder: (_) => const GuardedPage(
+            allowedRoles: ['guru'],
+            child: KelasListGuruPage(),
+          ),
+        );
+
       case Routes.kepsek:
         return MaterialPageRoute(
           builder: (_) => const GuardedPage(
@@ -77,7 +87,13 @@ class AppRouter {
             child: ParentDashboard(),
           ),
         );
-
+      case Routes.parentKelas:
+        return MaterialPageRoute(
+          builder: (_) => const GuardedPage(
+            allowedRoles: ['parent'],
+            child: KelasListSiswaPage(),
+          ),
+        );
       case Routes.notifications:
         return MaterialPageRoute(
           builder: (_) => const GuardedPage(

@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../navigation/routes.dart';
 import '../session/session_provider.dart';
-import '../navigation/navigator_key.dart'; 
-
+import '../navigation/navigator_key.dart';
+import '../network/net_status_provider.dart';
 class AppScaffold extends ConsumerWidget {
   final String title;
   final Widget body;
@@ -22,7 +23,7 @@ class AppScaffold extends ConsumerWidget {
         ];
       case 'guru':
         return [
-          _MenuItem('Input Laporan', '/guru/input-laporan'),
+          _MenuItem('Kelas Al-Qur\'an', '/guru/kelas'),
           _MenuItem('Profile', '/profile'),
         ];
       case 'kepsek':
@@ -33,27 +34,22 @@ class AppScaffold extends ConsumerWidget {
       case 'parent':
       default:
         return [
-          _MenuItem('Laporan Anak', '/parent/laporan'),
+          _MenuItem('Kelas Al-Qur\'an', '/parent/kelas'),
           _MenuItem('Profile', '/profile'),
         ];
     }
   }
 
   void _navTo(String route) {
-
     navigatorKey.currentState?.pop();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       navigatorKey.currentState?.pushNamed(route);
     });
   }
 
   Future<void> _logout(WidgetRef ref) async {
-
     navigatorKey.currentState?.pop();
-
     await ref.read(sessionProvider.notifier).logout();
-
     WidgetsBinding.instance.addPostFrameCallback((_) {
       navigatorKey.currentState?.pushNamedAndRemoveUntil(
         Routes.login,
@@ -77,6 +73,9 @@ class AppScaffold extends ConsumerWidget {
 
     final namaLengkap = session.namaLengkap;
     final userId = session.userId ?? '';
+
+    final netAsync = ref.watch(netStatusProvider);
+
     return Scaffold(
       drawer: Drawer(
         child: SafeArea(
@@ -149,7 +148,6 @@ class AppScaffold extends ConsumerWidget {
                 ),
               ),
               const Divider(),
-
               Expanded(
                 child: ListView(
                   children: [
@@ -165,9 +163,7 @@ class AppScaffold extends ConsumerWidget {
                   ],
                 ),
               ),
-
               const Divider(),
-
               ListTile(
                 leading: const Icon(Icons.logout),
                 title: const Text('Logout'),
@@ -192,7 +188,45 @@ class AppScaffold extends ConsumerWidget {
           ),
         ],
       ),
-      body: body,
+
+      body: Column(
+        children: [
+          netAsync.when(
+            data: (net) {
+              if (net == NetStatus.online) return const SizedBox.shrink();
+
+              return MaterialBanner(
+                leading: const Icon(Icons.wifi_off_rounded),
+                content: const Text(
+                  'Internet terputus. Beberapa fitur mungkin tidak berjalan.',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () async {
+                      final ctrl = ref.read(sessionProvider.notifier);
+                      if (ctrl is dynamic) {
+                        try {
+                          await ctrl.bootstrap();
+                        } catch (_) {}
+                      }
+                    },
+                    child: const Text('Coba lagi'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      ref.invalidate(netStatusProvider);
+                    },
+                    child: const Text('Tutup'),
+                  ),
+                ],
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
+          Expanded(child: body),
+        ],
+      ),
     );
   }
 }

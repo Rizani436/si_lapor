@@ -12,7 +12,10 @@ class Routes {
 
 
   static const guru = '/guru';
+  static const guruKelas = '/guru/kelas';
   static const parent = '/parent';
+  static const parentKelas = '/parent/kelas';
+  
   static const kepsek = '/kepsek';
 
   static const notifications = '/notifications';

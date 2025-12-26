@@ -343,3 +343,29 @@ Future<bool?> showInputUbahPassword({
     },
   );
 }
+
+enum AvatarAction { change, remove }
+
+Future<AvatarAction?> showAvatarActionDialog(BuildContext context) {
+  return showDialog<AvatarAction>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: const Text('Foto Profile'),
+      content: const Text('Pilih aksi:'),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(ctx),
+          child: const Text('Batal'),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(ctx, AvatarAction.remove),
+          child: const Text('Hapus Foto'),
+        ),
+        ElevatedButton(
+          onPressed: () => Navigator.pop(ctx, AvatarAction.change),
+          child: const Text('Ganti Foto'),
+        ),
+      ],
+    ),
+  );
+}

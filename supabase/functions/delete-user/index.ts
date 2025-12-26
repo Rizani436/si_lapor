@@ -2,7 +2,6 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req) => {
-  // CORS (optional, tapi aman kalau invoke dari app)
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -41,7 +40,6 @@ serve(async (req) => {
       });
     }
 
-    // Client memakai token pemanggil (admin yang login di Flutter)
     const supabaseUserClient = createClient(PROJECT_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -56,7 +54,6 @@ serve(async (req) => {
 
     const callerId = userData.user.id;
 
-    // Cek role caller = admin
     const { data: callerProfile, error: callerProfileErr } = await supabaseUserClient
       .from("profiles")
       .select("role")
@@ -87,7 +84,6 @@ serve(async (req) => {
       });
     }
 
-    // Cegah admin hapus dirinya sendiri
     if (targetUserId === callerId) {
       return new Response(JSON.stringify({ error: "Cannot delete yourself" }), {
         status: 400,
@@ -95,10 +91,7 @@ serve(async (req) => {
       });
     }
 
-    // Admin client (service role)
     const supabaseAdmin = createClient(PROJECT_URL, SERVICE_ROLE_KEY);
-
-    // 1) Hapus profiles terlebih dahulu (atau lakukan cascade di DB)
     const { error: delProfileErr } = await supabaseAdmin
       .from("profiles")
       .delete()
@@ -111,7 +104,6 @@ serve(async (req) => {
       });
     }
 
-    // 2) Hapus auth.users
     const { error: delAuthErr } = await supabaseAdmin.auth.admin.deleteUser(targetUserId);
     if (delAuthErr) {
       return new Response(JSON.stringify({ error: delAuthErr.message }), {

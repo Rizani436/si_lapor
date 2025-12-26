@@ -119,9 +119,6 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(PROJECT_URL, SERVICE_ROLE_KEY);
 
-    // =========================
-    // 1) Update AUTH (admin only)
-    // =========================
     if ((email !== null || (password !== null && password.length > 0))) {
       const payload: { email?: string; password?: string } = {};
       if (email !== null) payload.email = email;
@@ -138,18 +135,12 @@ serve(async (req) => {
       }
     }
 
-    // =========================
-    // 2) Update PROFILES (admin: siapa pun, user: diri sendiri)
-    // =========================
     const upd: Record<string, unknown> = {};
 
     if (email !== null) upd["email"] = email;
-
-    // semua role (self) boleh update ini
     if (nama_lengkap !== null) upd["nama_lengkap"] = nama_lengkap;
     if (no_hp !== null) upd["no_hp"] = no_hp;
 
-    // foto_profile: null boleh (hapus foto), undefined artinya tidak diubah
     if (foto_profile !== undefined) {
       upd["foto_profile"] = foto_profile;
     }

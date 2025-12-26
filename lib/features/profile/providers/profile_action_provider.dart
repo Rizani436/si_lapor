@@ -36,7 +36,6 @@ class ProfileActionNotifier extends AsyncNotifier<void> {
 
     state = const AsyncLoading();
     try {
-      // reauth
       try {
         final reauth = await supabase.auth.signInWithPassword(
           email: email,

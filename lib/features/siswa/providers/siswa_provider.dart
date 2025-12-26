@@ -71,4 +71,8 @@ class SiswaListNotifier extends AsyncNotifier<List<SiswaModel>> {
 
     state = AsyncData(current);
   }
+
+  Future<SiswaModel> getSiswa(int idDataSiswa) async{
+    return await _service.getSiswa(idDataSiswa);
+  }
 }

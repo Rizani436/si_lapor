@@ -2,12 +2,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 type Body = {
   user_id: string;
-  role: string; // contoh: "admin"
+  role: string;
 };
 
 Deno.serve(async (req) => {
   try {
-    // 1) Ambil JWT user yang memanggil function (supaya bisa kita cek siapa pemanggilnya)
     const authHeader = req.headers.get("Authorization") ?? "";
     const jwt = authHeader.replace("Bearer ", "").trim();
 
@@ -18,7 +17,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 2) Client untuk verifikasi user pemanggil (pakai anon key)
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const supabaseUser = createClient(supabaseUrl, anonKey, {
@@ -33,7 +31,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 3) Cek apakah pemanggil adalah admin (role ada di app_metadata JWT)
     const callerRole = userData.user.app_metadata?.role;
     if (callerRole !== "admin") {
       return new Response(JSON.stringify({ error: "Forbidden: admin only" }), {
@@ -42,7 +39,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 4) Ambil body request
     const { user_id, role } = (await req.json()) as Body;
     if (!user_id || !role) {
       return new Response(JSON.stringify({ error: "user_id and role are required" }), {
@@ -51,7 +47,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // 5) Client admin (service role) untuk update app_metadata target user
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 

@@ -15,6 +15,17 @@ class SiswaService {
     return list.map(SiswaModel.fromJson).toList();
   }
 
+  Future<List<SiswaModel>> getAllAktif() async {
+    final res = await _db
+        .from('datasiswa')
+        .select()
+        .eq('ket_aktif', 1)
+        .order('nama_lengkap', ascending: true);
+
+    final list = (res as List).cast<Map<String, dynamic>>();
+    return list.map(SiswaModel.fromJson).toList();
+  }
+
   Future<SiswaModel> create(SiswaModel payload) async {
     final res = await _db
         .from('datasiswa')
@@ -48,6 +59,16 @@ class SiswaService {
         .update({'ket_aktif': newVal})
         .eq('id_data_siswa', s.idDataSiswa)
         .select()
+        .single();
+
+    return SiswaModel.fromJson(res);
+  }
+
+  Future<SiswaModel> getSiswa(int idDataSiswa) async {
+    final res = await _db
+        .from('datasiswa')
+        .select()
+        .eq('id_data_siswa', idDataSiswa)
         .single();
 
     return SiswaModel.fromJson(res);

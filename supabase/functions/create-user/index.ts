@@ -2,7 +2,6 @@ import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 serve(async (req) => {
-  // CORS
   if (req.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
@@ -41,7 +40,6 @@ serve(async (req) => {
       });
     }
 
-    // client pemanggil (admin login)
     const supabaseUserClient = createClient(PROJECT_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -56,7 +54,6 @@ serve(async (req) => {
 
     const callerId = userData.user.id;
 
-    // Cek caller admin (di sini .eq() boleh, ini supabase-js di server)
     const { data: callerProfile, error: callerProfileErr } = await supabaseUserClient
       .from("profiles")
       .select("role")
@@ -77,7 +74,6 @@ serve(async (req) => {
       });
     }
 
-    // Body input
     const body = await req.json();
     const email = (body?.email ?? "").toString().trim().toLowerCase();
     const password = (body?.password ?? "").toString();
@@ -120,13 +116,11 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(PROJECT_URL, SERVICE_ROLE_KEY);
 
-    // 1) Buat auth user (email+password+phone)
-    // email_confirm: true supaya tidak perlu verifikasi email (opsional)
     const { data: created, error: createErr } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      phone: no_hp,          // Supabase auth phone harus format yang valid jika pakai SMS OTP; tapi tetap bisa disimpan
-      email_confirm: true,   // optional: set false kalau kamu ingin verifikasi email
+      phone: no_hp,          
+      email_confirm: true, 
       user_metadata: {
         nama_lengkap,
         role,
@@ -142,7 +136,6 @@ serve(async (req) => {
 
     const newUserId = created.user.id;
 
-    // 2) Insert/upsert ke profiles
     const { error: upsertErr } = await supabaseAdmin.from("profiles").upsert({
       id: newUserId,
       email,
@@ -154,7 +147,6 @@ serve(async (req) => {
     });
 
     if (upsertErr) {
-      // rollback auth user biar bersih
       await supabaseAdmin.auth.admin.deleteUser(newUserId);
       return new Response(JSON.stringify({ error: upsertErr.message }), {
         status: 400,

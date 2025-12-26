@@ -67,9 +67,7 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
     final clean = email.trim().toLowerCase().replaceAll(RegExp(r'\s+'), '');
 
     state = const AsyncLoading();
-    state = await AsyncValue.guard(
-      () => _service.updateEmail(uid, clean),
-    );
+    state = await AsyncValue.guard(() => _service.updateEmail(uid, clean));
 
     await ref.read(sessionProvider.notifier).refreshProfile();
   }
@@ -87,9 +85,24 @@ class MyProfileNotifier extends AsyncNotifier<ProfileModel?> {
         originalFilename: filename,
       ),
     );
-
+    ref.read(sessionProvider.notifier).bumpAvatarVersion();
     await ref.read(sessionProvider.notifier).refreshProfile();
 
+    ref.read(sessionProvider.notifier).bumpAvatarVersion();
+  }
+
+  Future<void> removeAvatar() async {
+    final session = ref.read(sessionProvider);
+    final uid = session.userId;
+    if (uid == null) return;
+
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() async {
+      return _service.removeAvatar(userId: uid);
+    });
+
+    ref.read(sessionProvider.notifier).bumpAvatarVersion();
+    await ref.read(sessionProvider.notifier).refreshProfile();
     ref.read(sessionProvider.notifier).bumpAvatarVersion();
   }
 }

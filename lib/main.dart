@@ -4,7 +4,7 @@ import 'core/navigation/app_router.dart';
 import 'core/navigation/routes.dart';
 import 'core/config/supabase_client.dart';
 import 'core/navigation/messenger_key.dart';
-import 'core/navigation/navigator_key.dart'; // ✅ tambah ini
+import 'core/navigation/navigator_key.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,10 +18,12 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: navigatorKey,           // ✅ tambah
-      scaffoldMessengerKey: messengerKey,   // ✅ kalau sudah pakai
+      navigatorKey: navigatorKey,
+      scaffoldMessengerKey: messengerKey,
       debugShowCheckedModeBanner: false,
-      initialRoute: Routes.login,
+
+      initialRoute: Routes.gate,
+
       onGenerateRoute: AppRouter.onGenerateRoute,
       theme: ThemeData(
         useMaterial3: true,

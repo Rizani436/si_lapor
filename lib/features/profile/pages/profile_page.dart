@@ -55,20 +55,46 @@ class ProfilePage extends ConsumerWidget {
                   onTap: isBusy
                       ? null
                       : () async {
-                          final resized = await pickAndUploadAvatar(ref);
-                          final tes = resized.toString();
-                          print("resized" + tes);
+                          final action = await showAvatarActionDialog(context);
+                          if (action == null) return;
 
-                          if (tes != "[]") {
+                          if (action == AvatarAction.change) {
+                            final resized = await pickAndUploadAvatar(ref);
+                            if (resized.toString() == "[]") return;
+
                             await ref
                                 .read(myProfileProvider.notifier)
                                 .uploadAvatar(resized, 'avatar.jpg');
-
-                            ref
-                                .read(sessionProvider.notifier)
-                                .bumpAvatarVersion();
-
                             toast('Foto profile diperbarui');
+                            return;
+                          }
+
+                          if (action == AvatarAction.remove) {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                title: const Text('Hapus Foto Profile?'),
+                                content: const Text(
+                                  'Foto profile akan dihapus.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text('Hapus'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm != true) return;
+
+                            await ref
+                                .read(myProfileProvider.notifier)
+                                .removeAvatar();
+                            toast('Foto profile dihapus');
                           }
                         },
                   child: Stack(
@@ -111,20 +137,46 @@ class ProfilePage extends ConsumerWidget {
                   onPressed: isBusy
                       ? null
                       : () async {
-                          final resized = await pickAndUploadAvatar(ref);
-                          final tes = resized.toString();
-                          print("resized" + tes);
+                          final action = await showAvatarActionDialog(context);
+                          if (action == null) return;
 
-                          if (tes != "[]") {
+                          if (action == AvatarAction.change) {
+                            final resized = await pickAndUploadAvatar(ref);
+                            if (resized.toString() == "[]") return;
+
                             await ref
                                 .read(myProfileProvider.notifier)
                                 .uploadAvatar(resized, 'avatar.jpg');
-
-                            ref
-                                .read(sessionProvider.notifier)
-                                .bumpAvatarVersion();
-
                             toast('Foto profile diperbarui');
+                            return;
+                          }
+
+                          if (action == AvatarAction.remove) {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder: (c) => AlertDialog(
+                                title: const Text('Hapus Foto Profile?'),
+                                content: const Text(
+                                  'Foto profile akan dihapus.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(c, false),
+                                    child: const Text('Batal'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(c, true),
+                                    child: const Text('Hapus'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirm != true) return;
+
+                            await ref
+                                .read(myProfileProvider.notifier)
+                                .removeAvatar();
+                            toast('Foto profile dihapus');
                           }
                         },
                   icon: const Icon(Icons.edit),

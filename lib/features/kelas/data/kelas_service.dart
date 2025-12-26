@@ -77,7 +77,6 @@ class KelasService {
         .eq('id_kelas', payload.idKelas ?? '')
         .select()
         .single();
-
     final res = await _db
         .from('ruangkelas')
         .update({'id_kelas': payload.idKelas, 'ket_aktif': payload.ketAktif})
@@ -137,4 +136,135 @@ class KelasService {
     await _db.from('kelasalquran').delete().eq('id_kelas', idKelas);
   }
 
+  Future<List<KelasModel>> getAllMy(String userId) async {
+    final cekRes = await _db
+        .from('isiruangkelas')
+        .select('id_ruang_kelas')
+        .eq('id_user_guru', userId);
+
+    final cek = (cekRes as List).cast<Map<String, dynamic>>();
+    if (cek.isEmpty) return [];
+
+    final ids = cek
+        .map((e) => e['id_ruang_kelas'])
+        .where((v) => v != null)
+        .toList();
+
+    if (ids.isEmpty) return [];
+
+    final res = await _db
+        .from('ruangkelas')
+        .select('''
+        id_ruang_kelas,
+        id_kelas,
+        kode_kelas,
+        ket_aktif,
+        kelasalquran (
+          nama_kelas,
+          tahun_pelajaran,
+          semester,
+          jenis_kelas
+        )
+      ''')
+        .filter('id_ruang_kelas', 'in', '(${ids.join(',')})')
+        .order('kode_kelas', ascending: true);
+
+    final list = (res as List).cast<Map<String, dynamic>>();
+    return list.map(KelasModel.fromJson).toList();
+  }
+
+  Future<List<KelasModel>> getAllMySiswa(String userId) async {
+    final cekRes = await _db
+        .from('isiruangkelas')
+        .select('id_ruang_kelas')
+        .eq('id_user_siswa', userId);
+
+    final cek = (cekRes as List).cast<Map<String, dynamic>>();
+    if (cek.isEmpty) return [];
+
+    final ids = cek
+        .map((e) => e['id_ruang_kelas'])
+        .where((v) => v != null)
+        .toList();
+
+    if (ids.isEmpty) return [];
+
+    final res = await _db
+        .from('ruangkelas')
+        .select('''
+        id_ruang_kelas,
+        id_kelas,
+        kode_kelas,
+        ket_aktif,
+        kelasalquran (
+          nama_kelas,
+          tahun_pelajaran,
+          semester,
+          jenis_kelas
+        )
+      ''')
+        .filter('id_ruang_kelas', 'in', '(${ids.join(',')})')
+        .order('kode_kelas', ascending: true);
+
+    final list = (res as List).cast<Map<String, dynamic>>();
+    return list.map(KelasModel.fromJson).toList();
+  }
+
+  Future<KelasModel> createByGuru(KelasModel payload, String? id) async {
+    final resKelas = await _db
+        .from('kelasalquran')
+        .insert({
+          'nama_kelas': payload.namaKelas,
+          'tahun_pelajaran': payload.tahunPelajaran,
+          'semester': payload.semester,
+          'jenis_kelas': payload.jenisKelas,
+        })
+        .select()
+        .single();
+    final idKelas = resKelas['id_kelas'];
+    final kodeKelas = 'RK-${generateKodeKelas()}';
+
+    final res = await _db
+        .from('ruangkelas')
+        .insert({
+          'id_kelas': idKelas,
+          'kode_kelas': kodeKelas,
+          'ket_aktif': payload.ketAktif,
+        })
+        .select('''
+        id_ruang_kelas,
+        id_kelas,
+        kode_kelas,
+        ket_aktif,
+        kelasalquran (
+          nama_kelas,
+          tahun_pelajaran,
+          semester,
+          jenis_kelas
+        )
+      ''')
+        .single();
+
+    KelasModel temp = KelasModel.fromJson(res);
+    await _db
+        .from('isiruangkelas')
+        .insert({'id_ruang_kelas': temp.idRuangKelas, 'id_user_guru': id})
+        .select()
+        .single();
+
+    return temp;
+  }
+
+  Future<int?> getMy(String idUser, int idKelas) async {
+    final res = await _db
+        .from('isiruangkelas')
+        .select('id_data_siswa')
+        .eq('id_user_siswa', idUser)
+        .eq('id_ruang_kelas', idKelas)
+        .maybeSingle();
+
+    if (res == null) return null;
+
+    return res['id_data_siswa'] as int?;
+  }
 }

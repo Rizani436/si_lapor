@@ -18,6 +18,7 @@ class _KelasFormPageState extends ConsumerState<KelasFormPage> {
   late final TextEditingController tahunPelajaranC;
   late final TextEditingController semesterC;
 
+  int idKelas = 0;
   String jk = 'Reguler';
   bool aktif = true;
   bool saving = false;
@@ -31,6 +32,7 @@ class _KelasFormPageState extends ConsumerState<KelasFormPage> {
     tahunPelajaranC = TextEditingController(text: s?.tahunPelajaran ?? '');
     semesterC = TextEditingController(text: s?.semester.toString() ?? '');
 
+    idKelas = s?.idKelas ?? 0;
     jk = s?.jenisKelas ?? 'Reguler';
     aktif = (s?.ketAktif ?? 1) == 1;
   }
@@ -132,6 +134,7 @@ class _KelasFormPageState extends ConsumerState<KelasFormPage> {
                           try {
                             final payload = KelasModel(
                               idRuangKelas: widget.existing?.idRuangKelas ?? 0,
+                              idKelas: idKelas,
                               namaKelas: namaKelasC.text.trim(),
                               tahunPelajaran: tahunPelajaranC.text.trim(),
                               semester:
@@ -140,7 +143,6 @@ class _KelasFormPageState extends ConsumerState<KelasFormPage> {
                               jenisKelas: jk,
                               ketAktif: aktif ? 1 : 0,
                             );
-
                             final notifier = ref.read(
                               kelasListProvider.notifier,
                             );

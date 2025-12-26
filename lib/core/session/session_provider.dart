@@ -1,6 +1,8 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../config/supabase_client.dart';
 
 class SessionState {
@@ -12,6 +14,10 @@ class SessionState {
   final String? email;
   final int avatarVersion;
 
+  final bool isBootstrapping;
+  final bool isOffline;
+  final String? offlineMessage;
+
   const SessionState({
     required this.isLoggedIn,
     required this.userId,
@@ -20,18 +26,24 @@ class SessionState {
     required this.namaLengkap,
     required this.email,
     required this.avatarVersion,
+    required this.isBootstrapping,
+    required this.isOffline,
+    required this.offlineMessage,
   });
 
-  const SessionState.guest()
-    : this(
-        isLoggedIn: false,
-        userId: null,
-        role: null,
-        fotoProfile: null,
-        namaLengkap: null,
-        email: null,
-        avatarVersion: 0,
-      );
+  const SessionState.guest({bool bootstrapping = false})
+      : this(
+          isLoggedIn: false,
+          userId: null,
+          role: null,
+          fotoProfile: null,
+          namaLengkap: null,
+          email: null,
+          avatarVersion: 0,
+          isBootstrapping: bootstrapping,
+          isOffline: false,
+          offlineMessage: null,
+        );
 
   SessionState copyWith({
     bool? isLoggedIn,
@@ -41,6 +53,9 @@ class SessionState {
     String? namaLengkap,
     String? email,
     int? avatarVersion,
+    bool? isBootstrapping,
+    bool? isOffline,
+    String? offlineMessage,
   }) {
     return SessionState(
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
@@ -50,23 +65,36 @@ class SessionState {
       namaLengkap: namaLengkap ?? this.namaLengkap,
       email: email ?? this.email,
       avatarVersion: avatarVersion ?? this.avatarVersion,
+      isBootstrapping: isBootstrapping ?? this.isBootstrapping,
+      isOffline: isOffline ?? this.isOffline,
+      offlineMessage: offlineMessage,
     );
   }
 }
 
-final sessionProvider = NotifierProvider<SessionController, SessionState>(
+final sessionProvider =
+    NotifierProvider<SessionController, SessionState>(
   SessionController.new,
 );
 
 class SessionController extends Notifier<SessionState> {
   StreamSubscription<AuthState>? _authSub;
 
+  Future<bool> _checkOnline() async {
+    try {
+      await supabase.rpc('ping');
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   SessionState build() {
     final user = supabase.auth.currentUser;
 
     state = (user == null)
-        ? const SessionState.guest()
+        ? const SessionState.guest(bootstrapping: true)
         : SessionState(
             isLoggedIn: true,
             userId: user.id,
@@ -75,33 +103,48 @@ class SessionController extends Notifier<SessionState> {
             namaLengkap: null,
             email: user.email,
             avatarVersion: 0,
+            isBootstrapping: true,
+            isOffline: false,
+            offlineMessage: null,
           );
 
-    if (user != null) {
-      Future.microtask(refreshProfile);
-    }
-
-    _authSub?.cancel();
-    _authSub = supabase.auth.onAuthStateChange.listen((data) async {
-      final event = data.event;
-      final session = data.session;
-      final user = session?.user;
-
-      if (event == AuthChangeEvent.signedOut || user == null) {
-        state = const SessionState.guest();
+    Future.microtask(() async {
+      final online = await _checkOnline();
+      if (!online) {
+        state = state.copyWith(
+          isBootstrapping: false,
+          isOffline: true,
+          offlineMessage:
+              'Tidak ada koneksi internet / server tidak dapat dijangkau.',
+        );
         return;
       }
 
-      final prevVersion = state.avatarVersion;
+      if (supabase.auth.currentUser != null) {
+        await refreshProfile();
+      } else {
+        state = state.copyWith(
+          isBootstrapping: false,
+          isOffline: false,
+          offlineMessage: null,
+        );
+      }
+    });
 
-      state = SessionState(
+    _authSub?.cancel();
+    _authSub = supabase.auth.onAuthStateChange.listen((data) async {
+      final user = data.session?.user;
+
+      if (user == null) {
+        state = const SessionState.guest(bootstrapping: false);
+        return;
+      }
+
+      state = state.copyWith(
         isLoggedIn: true,
         userId: user.id,
-        role: null,
-        fotoProfile: null,
-        namaLengkap: null,
         email: user.email,
-        avatarVersion: prevVersion,
+        isBootstrapping: true,
       );
 
       await refreshProfile();
@@ -115,34 +158,52 @@ class SessionController extends Notifier<SessionState> {
     return state;
   }
 
+  Future<void> bootstrap() async {
+    state = state.copyWith(
+      isBootstrapping: true,
+      isOffline: false,
+      offlineMessage: null,
+    );
+
+    final online = await _checkOnline();
+    if (!online) {
+      state = state.copyWith(
+        isBootstrapping: false,
+        isOffline: true,
+        offlineMessage:
+            'Tidak ada koneksi internet / server tidak dapat dijangkau.',
+      );
+      return;
+    }
+
+    await refreshProfile();
+  }
+
   Future<void> refreshProfile() async {
     final user = supabase.auth.currentUser;
     if (user == null) {
-      state = const SessionState.guest();
+      state = const SessionState.guest(bootstrapping: false);
       return;
     }
 
     try {
       final data = await supabase
           .from('profiles')
-          .select('role, is_active, foto_profile, nama_lengkap, email, no_hp')
+          .select('role, is_active, foto_profile, nama_lengkap, email')
           .eq('id', user.id)
           .maybeSingle();
 
-      final isActive = data?['is_active'] as bool?;
-      if (isActive == false) {
+      if (data?['is_active'] == false) {
         await supabase.auth.signOut();
-        state = const SessionState.guest();
+        state = const SessionState.guest(bootstrapping: false);
         return;
       }
 
       final newFoto = data?['foto_profile'] as String?;
-      final oldFoto = state.fotoProfile;
-
       final nextVersion =
-          (newFoto != null && newFoto.isNotEmpty && newFoto != oldFoto)
-          ? state.avatarVersion + 1
-          : state.avatarVersion;
+          (newFoto != null && newFoto != state.fotoProfile)
+              ? state.avatarVersion + 1
+              : state.avatarVersion;
 
       state = SessionState(
         isLoggedIn: true,
@@ -150,26 +211,25 @@ class SessionController extends Notifier<SessionState> {
         role: data?['role'] as String?,
         fotoProfile: newFoto,
         namaLengkap: data?['nama_lengkap'] as String?,
-        email: (data?['email'] as String?) ?? user.email,
+        email: data?['email'] as String? ?? user.email,
         avatarVersion: nextVersion,
+        isBootstrapping: false,
+        isOffline: false,
+        offlineMessage: null,
       );
-    } catch (e) {
-
-      state = SessionState(
-        isLoggedIn: true,
-        userId: user.id,
-        role: null,
-        fotoProfile: state.fotoProfile,
-        namaLengkap: state.namaLengkap,
-        email: user.email,
-        avatarVersion: state.avatarVersion,
+    } catch (_) {
+      state = state.copyWith(
+        isBootstrapping: false,
+        isOffline: true,
+        offlineMessage:
+            'Tidak ada koneksi internet / server tidak dapat dijangkau.',
       );
     }
   }
 
   Future<void> logout() async {
     await supabase.auth.signOut();
-    state = const SessionState.guest();
+    state = const SessionState.guest(bootstrapping: false);
   }
 
   void bumpAvatarVersion() {
