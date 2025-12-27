@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:si_lapor/features/laporan/widgets/laporan_tile.dart';
+import 'package:si_lapor/core/UI/ui_helpers.dart';
+
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
 import '../providers/laporan_siswa_provider.dart';
-import '../../../core/session/session_provider.dart';
+import '../widgets/laporan_tile.dart';
+import 'laporan_siswa_form_page.dart';
 
 class LaporanListPage extends ConsumerStatefulWidget {
   final SiswaModel? existing;
@@ -24,19 +28,58 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
 
   DateTime? selectedDate;
 
+  Timer? _pollTimer;
+
   @override
   void initState() {
     super.initState();
     siswa = widget.existing;
     kelas = widget.existingKelas;
-
     selectedDate = DateTime.now();
+
+    _startAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _stopAutoRefresh();
+    super.dispose();
   }
 
   String _fmtDate(DateTime d) {
     return '${d.year.toString().padLeft(4, '0')}-'
         '${d.month.toString().padLeft(2, '0')}-'
         '${d.day.toString().padLeft(2, '0')}';
+  }
+
+  ({int idRuangKelas, int idDataSiswa, String tanggal})? _providerArgs() {
+    final idDataSiswa = siswa?.idDataSiswa;
+    final idRuangKelas = kelas?.idRuangKelas;
+    final tanggalStr = selectedDate == null ? null : _fmtDate(selectedDate!);
+
+    if (idDataSiswa == null || idRuangKelas == null || tanggalStr == null) {
+      return null;
+    }
+
+    return (
+      idRuangKelas: idRuangKelas,
+      idDataSiswa: idDataSiswa,
+      tanggal: tanggalStr,
+    );
+  }
+
+  void _startAutoRefresh() {
+    _pollTimer?.cancel();
+    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      final args = _providerArgs();
+      if (args == null) return;
+      ref.invalidate(laporanByTanggalProvider(args));
+    });
+  }
+
+  void _stopAutoRefresh() {
+    _pollTimer?.cancel();
+    _pollTimer = null;
   }
 
   Future<bool> _confirmDelete(BuildContext context) async {
@@ -69,30 +112,20 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
       lastDate: DateTime(now.year + 2),
     );
     if (picked == null) return;
+
     setState(() => selectedDate = picked);
+
+    // supaya polling refresh sesuai tanggal baru
+    _startAutoRefresh();
   }
 
   @override
   Widget build(BuildContext context) {
-    final idDataSiswa = siswa?.idDataSiswa;
-    final idRuangKelas = kelas?.idRuangKelas;
-    final tanggalStr = selectedDate == null ? null : _fmtDate(selectedDate!);
+    final args = _providerArgs();
+    final canLoad = args != null;
 
-    final canLoad =
-        idDataSiswa != null && idRuangKelas != null && tanggalStr != null;
-
-    final laporanAsync = canLoad
-        ? ref.watch(
-            laporanByTanggalProvider((
-              idRuangKelas: idRuangKelas!,
-              idDataSiswa: idDataSiswa!,
-              tanggal: tanggalStr!,
-            )),
-          )
-        : null;
-
-    final session = ref.watch(sessionProvider);
-    final role = session.role;
+    final laporanAsync =
+        canLoad ? ref.watch(laporanByTanggalProvider(args!)) : null;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Laporan Siswa')),
@@ -109,7 +142,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Laporan Siswa',
+                        'Biodata Siswa',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -132,9 +165,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                   ),
                 ),
               ),
-
               const SizedBox(height: 14),
-
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
@@ -149,7 +180,6 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                         ),
                       ),
                       const SizedBox(height: 12),
-
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: const Icon(Icons.event),
@@ -162,9 +192,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                           child: const Text('Pilih'),
                         ),
                       ),
-
                       const Divider(height: 24),
-
                       if (!canLoad)
                         const Padding(
                           padding: EdgeInsets.only(bottom: 8),
@@ -184,9 +212,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                             if (list.isEmpty) {
                               return const Padding(
                                 padding: EdgeInsets.only(bottom: 8),
-                                child: Text(
-                                  'Tidak ada laporan pada tanggal ini.',
-                                ),
+                                child: Text('Tidak ada laporan pada tanggal ini.'),
                               );
                             }
                             return ListView.builder(
@@ -195,15 +221,14 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, i) {
                                 final r = list[i];
-
-                                return LaporanTile(laporan: r);
+                                return LaporanTile(
+                                  laporan: r,
+                                );
                               },
                             );
                           },
                         ),
-
-                      const SizedBox(height: 12),
-                      ],
+                    ],
                   ),
                 ),
               ),

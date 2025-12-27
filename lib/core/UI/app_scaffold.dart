@@ -28,7 +28,7 @@ class AppScaffold extends ConsumerWidget {
         ];
       case 'kepsek':
         return [
-          _MenuItem('Monitoring', '/kepsek/monitoring'),
+          _MenuItem('Laporan', '/kepsek/laporan'),
           _MenuItem('Profile', '/profile'),
         ];
       case 'parent':

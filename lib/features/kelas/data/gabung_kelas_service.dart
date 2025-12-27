@@ -30,6 +30,16 @@ class GabungKelasService {
     return list;
   }
 
+  Future<Map<String, dynamic>?> cekGabung(int idRuangKelas, String idUser) async {
+
+    return sb
+        .from('isiruangkelas')
+        .select('id_data_siswa, datasiswa(nama_lengkap)')
+        .eq('id_ruang_kelas', idRuangKelas)
+        .eq('id_user_siswa', idUser)
+        .maybeSingle();
+  }
+
   Future<void> gabungKelas({
     required int idRuangKelas,
     required int idDataSiswa,

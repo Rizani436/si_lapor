@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/session/session_provider.dart';
 
 import '../models/siswa_pick.dart';
 import '../data/gabung_kelas_service.dart';
@@ -84,6 +85,12 @@ class GabungKelasNotifier extends Notifier<GabungKelasState> {
       selectedIdDataSiswa: null,
     );
 
+    final session = ref.read(sessionProvider);
+    final uid = session.userId;
+    if (uid == null) throw Exception('Session tidak valid. Silakan login ulang.');
+
+
+
     try {
       final ruang = await _service.getRuangByKode(clean);
 
@@ -93,6 +100,14 @@ class GabungKelasNotifier extends Notifier<GabungKelasState> {
       }
 
       final idRuangKelas = (ruang['id_ruang_kelas'] as num).toInt();
+      final cek = await _service.cekGabung(idRuangKelas, uid);
+
+      if(cek != null){
+        state = state.copyWith(loading: false, error: "Kamu sudah masuk ke kelas ini", notFound: true); 
+        return;
+      }
+
+
       final list = await _service.getSiswaKosongByRuang(idRuangKelas);
 
       state = state.copyWith(

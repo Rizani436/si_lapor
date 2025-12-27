@@ -35,7 +35,7 @@ class ResultCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Kelas ditemukan ✅ (id_ruang_kelas: ${st.idRuangKelas})',
+          'Kelas ditemukan)',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),

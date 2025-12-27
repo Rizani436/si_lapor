@@ -245,9 +245,6 @@ class EditIsiKelasPage extends ConsumerWidget {
                     child: ListTile(
                       leading: const Icon(Icons.person),
                       title: Text(nama),
-                      subtitle: Text(
-                        'row_id: ${rowId ?? "-"} | id_data_siswa: ${s.idDataSiswa} | id_user_siswa: ${s.idUserSiswa ?? "-"}',
-                      ),
 
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

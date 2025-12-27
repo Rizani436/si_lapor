@@ -17,6 +17,8 @@ class Routes {
   static const parentKelas = '/parent/kelas';
   
   static const kepsek = '/kepsek';
+  static const kepsekLaporan = '/kepsek/laporan';
+  
 
   static const notifications = '/notifications';
 }

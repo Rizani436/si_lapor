@@ -17,6 +17,8 @@ import '../../features/kelas/pages/kelas_list_page.dart';
 import '../../features/profile/pages/profile_page.dart';
 import '../../features/kelas/pages/kelas_list_guru_page.dart';
 import '../../features/kelas/pages/kelas_list_siswa_page.dart';
+import '../../features/laporan/pages/laporan_kepsek_page.dart';
+
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -77,6 +79,13 @@ class AppRouter {
           builder: (_) => const GuardedPage(
             allowedRoles: ['kepsek'],
             child: KepsekDashboard(),
+          ),
+        );
+      case Routes.kepsekLaporan:
+        return MaterialPageRoute(
+          builder: (_) => const GuardedPage(
+            allowedRoles: ['kepsek'],
+            child: LaporanKepSekPage(),
           ),
         );
 
