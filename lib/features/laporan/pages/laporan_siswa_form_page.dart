@@ -6,6 +6,8 @@ import '../../kelas/models/kelas_model.dart';
 import '../providers/laporan_siswa_provider.dart';
 import '../widgets/widgets_laporan_helper.dart';
 import '../../../core/utils/text_helper.dart';
+import '../../notifications/providers/notifikasi_provider.dart';
+import '../../kelas/providers/isi_ruang_kelas_provider.dart';
 
 class LaporanSiswaFormPage extends ConsumerStatefulWidget {
   final SiswaModel? existing;
@@ -286,6 +288,22 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     try {
       if (!isEdit) {
         await ref.read(laporanActionProvider.notifier).createLaporan(payload);
+
+        final uid = await ref
+            .read(isiRuangKelasProvider)
+            .getIdUser(isiruangkelasId: idRuangKelas, idDataSiswa: idDataSiswa);
+        print("uid");
+        print(uid);
+
+        if (uid != null) {
+          await ref
+              .read(notifikasiServiceProvider)
+              .createNotifikasi(
+                uid,
+                title: 'Laporan Baru',
+                body: 'Guru telah menambahkan laporan baru untuk siswa Anda.',
+              );
+        }
       } else {
         await ref
             .read(laporanActionProvider.notifier)

@@ -5,6 +5,11 @@ import '../navigation/routes.dart';
 import '../session/session_provider.dart';
 import '../navigation/navigator_key.dart';
 import '../network/net_status_provider.dart';
+import '../../features/notifications/providers/notif_polling_provider.dart';
+
+import '../../features/notifications/providers/notifikasi_provider.dart';
+
+
 class AppScaffold extends ConsumerWidget {
   final String title;
   final Widget body;
@@ -181,10 +186,67 @@ class AppScaffold extends ConsumerWidget {
         centerTitle: true,
         title: Text(title),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications),
-            onPressed: () =>
-                navigatorKey.currentState?.pushNamed(Routes.notifications),
+          Consumer(
+            builder: (context, ref, _) {
+              final unreadAsync = ref.watch(notifUnreadPollingProvider);
+
+              return unreadAsync.when(
+                data: (count) {
+                  return Stack(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications),
+                        onPressed: () {
+                          // ✅ setiap klik, ambil ulang dari DB
+                          ref.invalidate(notifikasiListProvider);
+                          ref.invalidate(notifikasiUnreadCountProvider);
+
+                          navigatorKey.currentState?.pushNamed(
+                            Routes.notifications,
+                          );
+                        },
+                      ),
+
+                      if (count > 0)
+                        Positioned(
+                          right: 10,
+                          top: 10,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '$count',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  );
+                },
+                loading: () => IconButton(
+                  icon: const Icon(Icons.notifications),
+                  onPressed: () => navigatorKey.currentState?.pushNamed(
+                    Routes.notifications,
+                  ),
+                ),
+                error: (_, __) => IconButton(
+                  icon: const Icon(Icons.notifications),
+                  onPressed: () => navigatorKey.currentState?.pushNamed(
+                    Routes.notifications,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),

@@ -28,7 +28,6 @@ class LaporanTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final id = laporan['id_laporan'];
     final tgl = laporan['tanggal']?.toString() ?? '';
 
     final ziyadah = _visibleText(laporan['ziyadah']);

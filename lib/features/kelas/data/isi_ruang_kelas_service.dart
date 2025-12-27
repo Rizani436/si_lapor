@@ -45,7 +45,7 @@ class IsiRuangKelasService {
     required int idRuangKelas,
     required int idDataSiswa,
   }) async {
-    final res = await _db.from('isiruangkelas').insert({
+    await _db.from('isiruangkelas').insert({
       'id_ruang_kelas': idRuangKelas,
       'id_data_siswa': idDataSiswa,
     });
@@ -56,11 +56,7 @@ class IsiRuangKelasService {
     required String idUserGuru,
     required int idDataGuru,
   }) async {
-    print(isiruangkelasId);
-
-    print(idUserGuru);
-    print(idDataGuru);
-     final res =await _db
+    await _db
         .from('isiruangkelas')
         .update({'id_data_guru': idDataGuru})
         .eq('id_ruang_kelas', isiruangkelasId)
@@ -68,15 +64,27 @@ class IsiRuangKelasService {
   }
 
   Future<void> unlinkSiswa({required int isiruangkelasId}) async {
-     final res =await _db
+    await _db
         .from('isiruangkelas')
         .update({'id_user_siswa': null})
         .eq('id', isiruangkelasId);
-
   }
 
   Future<void> deleteSiswaRelasi({required int isiruangkelasId}) async {
-     await _db.from('isiruangkelas').delete().eq('id', isiruangkelasId);
-
+    await _db.from('isiruangkelas').delete().eq('id', isiruangkelasId);
   }
+
+Future<String?> getIdUser({
+  required int isiruangkelasId,
+  required int idDataSiswa,
+}) async {
+  final res = await _db
+      .from('isiruangkelas')
+      .select('id_user_siswa')
+      .eq('id_ruang_kelas', isiruangkelasId)
+      .eq('id_data_siswa', idDataSiswa)
+      .single();
+
+  return res['id_user_siswa'] as String?;
+}
 }

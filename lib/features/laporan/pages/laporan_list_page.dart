@@ -80,28 +80,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
     _pollTimer = null;
   }
 
-  Future<bool> _confirmDelete(BuildContext context) async {
-    final res = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Hapus laporan?'),
-        content: const Text('Data laporan akan dihapus permanen.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus'),
-          ),
-        ],
-      ),
-    );
-    return res ?? false;
-  }
-
-  Future<void> _pickDate() async {
+    Future<void> _pickDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
