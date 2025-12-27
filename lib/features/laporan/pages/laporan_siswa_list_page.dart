@@ -115,7 +115,6 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
 
     setState(() => selectedDate = picked);
 
-    // supaya polling refresh sesuai tanggal baru
     _startAutoRefresh();
   }
 

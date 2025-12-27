@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/laporan_kepsek_provider.dart';
+import '../widgets/widgets_laporan_helper.dart'; 
 
 class LaporanKepSekPage extends ConsumerStatefulWidget {
   const LaporanKepSekPage({super.key});
@@ -106,7 +107,7 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
                   ),
                 ),
 
-              _SummarySectionCard(
+              SummarySectionCard(
                 title: 'Reguler',
                 minWajib: 2,
                 memenuhi: st.memenuhiReguler,
@@ -115,7 +116,7 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
               ),
               const SizedBox(height: 12),
 
-              _SummarySectionCard(
+              SummarySectionCard(
                 title: 'Tahfiz',
                 minWajib: 3,
                 memenuhi: st.memenuhiTahfiz,
@@ -125,135 +126,6 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _SummarySectionCard extends StatelessWidget {
-  final String title;
-  final int minWajib;
-  final int memenuhi;
-  final int belum;
-  final List<TasmiSummary> items;
-
-  const _SummarySectionCard({
-    required this.title,
-    required this.minWajib,
-    required this.memenuhi,
-    required this.belum,
-    required this.items,
-  });
-
-  String juzRangeText(List<int> juzSelesai) {
-    if (juzSelesai.isEmpty) return 'Belum ada juz selesai';
-    final min = juzSelesai.first;
-    final max = juzSelesai.last;
-    return (min == max) ? 'Juz $min' : 'Juz $min–$max';
-  }
-
-  double _pct(int part, int total) => total == 0 ? 0 : (part / total) * 100;
-
-  @override
-Widget build(BuildContext context) {
-  final total = items.length;
-  final pctSelesai = _pct(memenuhi, total);
-  final pctBelum = _pct(belum, total);
-
-  return Card(
-    child: ExpansionTile(
-      tilePadding: const EdgeInsets.all(14),
-      childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
-      title: Text(
-        '$title (minimal $minWajib juz selesai)',
-        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-      ),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Total siswa: $total'),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(999),
-              child: LinearProgressIndicator(
-                value: total == 0 ? 0 : (memenuhi / total),
-                minHeight: 10,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text('✅ Sudah selesai: $memenuhi (${pctSelesai.toStringAsFixed(1)}%)'),
-            Text('⏳ Belum selesai: $belum (${pctBelum.toStringAsFixed(1)}%)'),
-          ],
-        ),
-      ),
-
-      // LIST SISWA baru muncul saat expand
-      children: [
-        const Divider(height: 20),
-
-        Row(
-          children: [
-            Expanded(child: _MiniStat(label: 'Memenuhi', value: memenuhi.toString())),
-            const SizedBox(width: 10),
-            Expanded(child: _MiniStat(label: 'Belum', value: belum.toString())),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        if (items.isEmpty)
-          const Text('Tidak ada data untuk filter ini.')
-        else
-          ...items.map((s) {
-            final nama = (s.nama?.isNotEmpty == true)
-                ? s.nama!
-                : 'Siswa #${s.idDataSiswa}';
-
-            final range = juzRangeText(s.juzSelesai);
-            final status = s.memenuhi ? 'Memenuhi' : 'Belum';
-
-
-            return ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(nama),
-              subtitle: Text(
-                    '$range • Selesai: ${s.juzSelesai.length} juz',
-                  ),
-              trailing: Text(status),
-              // onTap: kalau mau klik siswa -> detail tasmi
-              // onTap: () => Navigator.push(... TasmiDetailPage ...),
-            );
-          }),
-      ],
-    ),
-  );
-}
-}
-
-class _MiniStat extends StatelessWidget {
-  final String label;
-  final String value;
-  const _MiniStat({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.black12),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.black54)),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-        ],
       ),
     );
   }

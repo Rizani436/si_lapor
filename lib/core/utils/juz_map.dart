@@ -1,7 +1,6 @@
-// features/laporan_kepsek/utils/juz_map.dart
 
 class JuzSegment {
-  final String surahKey; // normalized
+  final String surahKey;
   final int startAyat;
   final int endAyat;
   const JuzSegment(this.surahKey, this.startAyat, this.endAyat);
@@ -75,12 +74,12 @@ final Map<int, List<JuzSegment>> juzMap = {
   ],
   15: [
     JuzSegment(normSurah("Al-Isra'"), 1, 111),
-    JuzSegment(normSurah('Al-Kahfi'), 1, 74),
+    JuzSegment(normSurah('Al-Kahf'), 1, 74),
   ],
   16: [
-    JuzSegment(normSurah('Al-Kahfi'), 75, 110),
+    JuzSegment(normSurah('Al-Kahf'), 75, 110),
     JuzSegment(normSurah('Maryam'), 1, 98),
-    JuzSegment(normSurah('Ta Ha'), 1, 135),
+    JuzSegment(normSurah('Ta-Ha'), 1, 135),
   ],
   17: [
     JuzSegment(normSurah('Al-Anbiya'), 1, 112),
@@ -112,10 +111,10 @@ final Map<int, List<JuzSegment>> juzMap = {
     JuzSegment(normSurah('Al-Ahzab'), 31, 73),
     JuzSegment(normSurah("Saba'"), 1, 54),
     JuzSegment(normSurah('Fatir'), 1, 45),
-    JuzSegment(normSurah('Ya Sin'), 1, 27),
+    JuzSegment(normSurah('Ya-Sin'), 1, 27),
   ],
   23: [
-    JuzSegment(normSurah('Ya Sin'), 28, 83),
+    JuzSegment(normSurah('Ya-Sin'), 28, 83),
     JuzSegment(normSurah('As-Saffat'), 1, 82),
     JuzSegment(normSurah('Sad'), 1, 88),
     JuzSegment(normSurah('Az-Zumar'), 1, 31),
@@ -123,17 +122,17 @@ final Map<int, List<JuzSegment>> juzMap = {
   24: [
     JuzSegment(normSurah('Az-Zumar'), 32, 75),
     JuzSegment(normSurah('Al-Ghafir'), 1, 85),
-    JuzSegment(normSurah('Al-Fussilat'), 1, 46),
+    JuzSegment(normSurah('Fussilat'), 1, 46),
   ],
   25: [
-    JuzSegment(normSurah('Al-Fussilat'), 47, 54),
+    JuzSegment(normSurah('Fussilat'), 47, 54),
     JuzSegment(normSurah('Asy-Syura'), 1, 53),
     JuzSegment(normSurah('Az-Zukhruf'), 1, 89),
     JuzSegment(normSurah('Ad-Dukhan'), 1, 59),
-    JuzSegment(normSurah('Al-Jatsiyah'), 1, 32),
+    JuzSegment(normSurah('Al-Jasiyah'), 1, 32),
   ],
   26: [
-    JuzSegment(normSurah('Al-Jatsiyah'), 33, 37),
+    JuzSegment(normSurah('Al-Jasiyah'), 33, 37),
     JuzSegment(normSurah('Al-Ahqaf'), 1, 35),
     JuzSegment(normSurah('Muhammad'), 1, 38),
     JuzSegment(normSurah('Al-Fath'), 1, 29),
@@ -157,7 +156,7 @@ final Map<int, List<JuzSegment>> juzMap = {
     JuzSegment(normSurah('As-Saff'), 1, 14),
     JuzSegment(normSurah("Al-Jumu'ah"), 1, 11),
     JuzSegment(normSurah('Al-Munafiqun'), 1, 11),
-    JuzSegment(normSurah('At-Tagabun'), 1, 18),
+    JuzSegment(normSurah('At-Taghabun'), 1, 18),
     JuzSegment(normSurah('At-Talaq'), 1, 12),
     JuzSegment(normSurah('At-Tahrim'), 1, 12),
   ],
@@ -185,7 +184,7 @@ final Map<int, List<JuzSegment>> juzMap = {
     JuzSegment(normSurah('Al-Buruj'), 1, 22),
     JuzSegment(normSurah('At-Tariq'), 1, 17),
     JuzSegment(normSurah("Al-A'la"), 1, 19),
-    JuzSegment(normSurah('Al-Gasyiyah'), 1, 26),
+    JuzSegment(normSurah('Al-Ghasyiyah'), 1, 26),
     JuzSegment(normSurah('Al-Fajr'), 1, 30),
     JuzSegment(normSurah('Al-Balad'), 1, 20),
     JuzSegment(normSurah('Asy-Syams'), 1, 15),

@@ -1,14 +1,11 @@
-import 'package:collection/collection.dart'; // optional (kalau kamu tidak pakai, bisa hapus)
-import 'juz_map.dart'; // arahkan ke path juz_map.dart kamu
+import 'juz_map.dart'; 
 
 String displaySurahFromKey(String key) {
-  // key = normalized (tanpa spasi/tanda baca)
-  // supaya tampil rapi, kita cari nama asli dari mapping (pakai label map)
+
   return _surahLabelByKey[key] ?? key;
 }
 
 final Map<String, String> _surahLabelByKey = {
-  // label yang sering muncul (optional), biar tampil bagus
   normSurah('Al-Fatihah'): 'Al-Fatihah',
   normSurah('Al-Baqarah'): 'Al-Baqarah',
   normSurah('Ali Imran'): 'Ali Imran',
@@ -26,9 +23,9 @@ final Map<String, String> _surahLabelByKey = {
   normSurah('Al-Hijr'): 'Al-Hijr',
   normSurah('An-Nahl'): 'An-Nahl',
   normSurah("Al-Isra'"): "Al-Isra'",
-  normSurah('Al-Kahfi'): 'Al-Kahfi',
+  normSurah('Al-Kahf'): 'Al-Kahf',
   normSurah('Maryam'): 'Maryam',
-  normSurah('Ta Ha'): 'Ta Ha',
+  normSurah('Ta-Ha'): 'Ta-Ha',
   normSurah('Al-Anbiya'): 'Al-Anbiya',
   normSurah('Al-Hajj'): 'Al-Hajj',
   normSurah("Al-Mu'minun"): "Al-Mu'minun",
@@ -44,7 +41,7 @@ final Map<String, String> _surahLabelByKey = {
   normSurah('Al-Ahzab'): 'Al-Ahzab',
   normSurah("Saba'"): "Saba'",
   normSurah('Fatir'): 'Fatir',
-  normSurah('Ya Sin'): 'Ya Sin',
+  normSurah('Ya-Sin'): 'Ya-Sin',
   normSurah('As-Saffat'): 'As-Saffat',
   normSurah('Sad'): 'Sad',
   normSurah('Az-Zumar'): 'Az-Zumar',
@@ -72,7 +69,7 @@ final Map<String, String> _surahLabelByKey = {
   normSurah('As-Saff'): 'As-Saff',
   normSurah("Al-Jumu'ah"): "Al-Jumu'ah",
   normSurah('Al-Munafiqun'): 'Al-Munafiqun',
-  normSurah('At-Tagabun'): 'At-Tagabun',
+  normSurah('At-Taghabun'): 'At-Taghabun',
   normSurah('At-Talaq'): 'At-Talaq',
   normSurah('At-Tahrim'): 'At-Tahrim',
   normSurah('Al-Mulk'): 'Al-Mulk',
@@ -129,7 +126,6 @@ List<int> allJuz() => List.generate(30, (i) => i + 1);
 
 List<String> surahKeysForJuz(int juz) {
   final segs = juzMap[juz] ?? const [];
-  // unik + urutan sesuai segs
   final keys = <String>[];
   for (final s in segs) {
     if (!keys.contains(s.surahKey)) keys.add(s.surahKey);
@@ -144,12 +140,10 @@ List<String> surahKeysForJuz(int juz) {
       return (start: seg.startAyat, end: seg.endAyat);
     }
   }
-  // fallback
   return (start: 1, end: 1);
 }
 
 List<int> ayatOptions(int juz, String surahKey) {
   final r = ayatRangeFor(juz, surahKey);
-  // kalau range besar, ini bisa panjang. Boleh diubah jadi input number.
   return List.generate((r.end - r.start) + 1, (i) => r.start + i);
 }
