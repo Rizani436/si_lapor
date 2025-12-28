@@ -245,6 +245,7 @@ class EditIsiKelasPage extends ConsumerWidget {
                     child: ListTile(
                       leading: const Icon(Icons.person),
                       title: Text(nama),
+                      
 
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,

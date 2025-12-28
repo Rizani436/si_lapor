@@ -2,11 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
 import '../providers/laporan_siswa_provider.dart';
 import '../widgets/laporan_tile.dart';
+import '../providers/rapor_provider.dart';
 
 class LaporanListPage extends ConsumerStatefulWidget {
   final SiswaModel? existing;
@@ -14,8 +17,7 @@ class LaporanListPage extends ConsumerStatefulWidget {
   const LaporanListPage({super.key, this.existing, this.existingKelas});
 
   @override
-  ConsumerState<LaporanListPage> createState() =>
-      _LaporanListPageState();
+  ConsumerState<LaporanListPage> createState() => _LaporanListPageState();
 }
 
 class _LaporanListPageState extends ConsumerState<LaporanListPage> {
@@ -80,7 +82,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
     _pollTimer = null;
   }
 
-    Future<void> _pickDate() async {
+  Future<void> _pickDate() async {
     final now = DateTime.now();
     final picked = await showDatePicker(
       context: context,
@@ -100,8 +102,21 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
     final args = _providerArgs();
     final canLoad = args != null;
 
-    final laporanAsync =
-        canLoad ? ref.watch(laporanByTanggalProvider(args!)) : null;
+    final laporanAsync = canLoad
+        ? ref.watch(laporanByTanggalProvider(args!))
+        : null;
+
+    final idDataSiswa = siswa?.idDataSiswa;
+    final idRuangKelas = kelas?.idRuangKelas;
+
+    final raporAsync = (idDataSiswa != null && idRuangKelas != null)
+        ? ref.watch(
+            raporUrlProvider((
+              idDataSiswa: idDataSiswa,
+              idRuangKelas: idRuangKelas,
+            )),
+          )
+        : const AsyncValue.data(null);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Laporan Siswa')),
@@ -137,11 +152,77 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                         title: const Text('NIS'),
                         subtitle: Text(siswa?.nis ?? '-'),
                       ),
+                      const Divider(height: 18),
+
+                      raporAsync.when(
+                        loading: () => const ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                          title: Text('Memuat rapor...'),
+                        ),
+                        error: (e, _) => ListTile(
+                          contentPadding: EdgeInsets.zero,
+                          leading: const Icon(Icons.error_outline),
+                          title: const Text('Gagal memuat rapor'),
+                          subtitle: Text('$e'),
+                        ),
+                        data: (url) {
+                          if (url == null || url.trim().isEmpty) {
+                            return const ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: Icon(Icons.insert_drive_file_outlined),
+                              title: Text('Rapor'),
+                              subtitle: Text('Belum ada rapor diupload'),
+                            );
+                          }
+
+                          final viewUrl = url.trim(); 
+
+                          return ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            leading: const Icon(Icons.picture_as_pdf),
+                            title: const Text('Rapor'),
+                            subtitle: const Text('Klik untuk melihat rapor'),
+                            trailing: const Icon(Icons.open_in_new),
+                            onTap: () async {
+                              final uri = Uri.tryParse(viewUrl);
+                              if (uri == null) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('URL rapor tidak valid'),
+                                  ),
+                                );
+                                return;
+                              }
+
+                              final ok = await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+
+                              if (!ok && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Tidak bisa membuka rapor'),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 14),
+
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
@@ -188,7 +269,9 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                             if (list.isEmpty) {
                               return const Padding(
                                 padding: EdgeInsets.only(bottom: 8),
-                                child: Text('Tidak ada laporan pada tanggal ini.'),
+                                child: Text(
+                                  'Tidak ada laporan pada tanggal ini.',
+                                ),
                               );
                             }
                             return ListView.builder(
@@ -197,9 +280,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, i) {
                                 final r = list[i];
-                                return LaporanTile(
-                                  laporan: r,
-                                );
+                                return LaporanTile(laporan: r);
                               },
                             );
                           },
