@@ -75,7 +75,7 @@ class NotifikasiService {
       'id_user': uid,
       'title': title,
       'body': body,
-      'is_read': 0, // INT: 0 belum dibaca, 1 sudah dibaca
+      'is_read': 0,
     });
   }
 }

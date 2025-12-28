@@ -197,7 +197,6 @@ class AppScaffold extends ConsumerWidget {
                       IconButton(
                         icon: const Icon(Icons.notifications),
                         onPressed: () {
-                          // ✅ setiap klik, ambil ulang dari DB
                           ref.invalidate(notifikasiListProvider);
                           ref.invalidate(notifikasiUnreadCountProvider);
 
