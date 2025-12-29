@@ -339,7 +339,6 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
 
               const SizedBox(height: 14),
 
-              // ================== CARD DAFTAR LAPORAN ==================
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),

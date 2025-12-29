@@ -5,6 +5,7 @@ import '../providers/kelas_guru_provider.dart';
 import '../widgets/kelas_tile.dart';
 import 'detail_kelas_page.dart';
 import '../pages/kelas_form_page.dart';
+
 class KelasListGuruPage extends ConsumerStatefulWidget {
   const KelasListGuruPage({super.key});
 
@@ -47,7 +48,7 @@ class _KelasListGuruPageState extends ConsumerState<KelasListGuruPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kelola Kelas'),
+        title: const Text('Kelas Al Qur\'an'),
         actions: [
           IconButton(
             tooltip: 'Refresh',

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/gestures.dart';
 
 import '../providers/auth_provider.dart';
+import 'change_password_page.dart';
 import '../../../core/session/session_provider.dart';
 import '../../../core/navigation/routes.dart';
 
@@ -60,6 +61,28 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 ),
               ),
             ),
+            // Align(
+            //   alignment: Alignment.centerRight,
+            //   child: RichText(
+            //     text: TextSpan(
+            //       text: 'Lupa Password',
+            //       style: const TextStyle(
+            //         color: Colors.blue,
+            //         fontWeight: FontWeight.bold,
+            //         decoration: TextDecoration.underline,
+            //       ),
+            //       recognizer: TapGestureRecognizer()
+            //         ..onTap = () {
+            //           Navigator.push(
+            //             context,
+            //             MaterialPageRoute(
+            //               builder: (_) => const ChangePasswordPage(),
+            //             ),
+            //           );
+            //         },
+            //     ),
+            //   ),
+            // ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -99,9 +122,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           );
                         } catch (e) {
                           if (!mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())),
-                          );
+                          ScaffoldMessenger.of(
+                            context,
+                          ).showSnackBar(SnackBar(content: Text(e.toString())));
                         }
                       },
                 child: Text(isLoading ? 'Loading...' : 'Login'),
