@@ -5,6 +5,7 @@ import '../providers/kelas_guru_provider.dart';
 import '../widgets/kelas_tile.dart';
 import 'detail_kelas_page.dart';
 import '../pages/kelas_form_page.dart';
+import 'gabung_kelas_page(guru).dart';
 
 class KelasListGuruPage extends ConsumerStatefulWidget {
   const KelasListGuruPage({super.key});
@@ -59,16 +60,74 @@ class _KelasListGuruPageState extends ConsumerState<KelasListGuruPage> {
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
-        onPressed: () async {
-          final ok = await Navigator.push<bool>(
-            context,
-            MaterialPageRoute(builder: (_) => const KelasFormPage()),
+        onPressed: () {
+          showModalBottomSheet(
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            builder: (context) {
+              return SafeArea(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 8),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    ListTile(
+                      leading: const Icon(Icons.add_box),
+                      title: const Text('Buat Kelas'),
+                      subtitle: const Text('Buat kelas baru'),
+                      onTap: () async {
+                        Navigator.pop(context); // tutup bottom sheet
+
+                        final ok = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const KelasFormPage(),
+                          ),
+                        );
+
+                        if (ok == true && context.mounted) {
+                          ref.read(kelasGuruListProvider.notifier).refresh();
+                        }
+                      },
+                    ),
+
+                    ListTile(
+                      leading: const Icon(Icons.group_add),
+                      title: const Text('Gabung Kelas'),
+                      subtitle: const Text('Masuk ke kelas yang sudah ada'),
+                      onTap: () async {
+                        final ok = await Navigator.push<bool>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const GabungKelasPageGuru(),
+                          ),
+                        );
+                        if (ok == true && context.mounted) {
+                          ref.read(kelasGuruListProvider.notifier).refresh();
+                        }
+                      },
+                    ),
+
+                    const SizedBox(height: 12),
+                  ],
+                ),
+              );
+            },
           );
-          if (ok == true && context.mounted) {
-            ref.read(kelasGuruListProvider.notifier).refresh();
-          }
         },
       ),
+
       body: Column(
         children: [
           Padding(

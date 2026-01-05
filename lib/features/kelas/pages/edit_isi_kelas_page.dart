@@ -26,8 +26,6 @@ class EditIsiKelasPage extends ConsumerWidget {
                     r.idDataGuru != null &&
                     (r.namaGuru ?? '').trim().isNotEmpty,
               )
-              .map((r) => r.namaGuru!.trim())
-              .toSet()
               .toList();
 
           final siswas = rows
@@ -58,6 +56,24 @@ class EditIsiKelasPage extends ConsumerWidget {
                     onPressed: () async {
                       final picked = await showPilihSiswaDialog(context);
                       if (picked == null) return;
+
+                      final exists = await ref
+                          .read(isiRuangKelasProvider)
+                          .cekIdDataSiswa(
+                            idRuangKelas: idRuangKelas,
+                            idDataSiswa: picked.idDataSiswa,
+                          );
+
+                      if (exists) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Siswa sudah ada di dalam kelas.'),
+                            ),
+                          );
+                        }
+                        return;
+                      }
 
                       try {
                         await ref
@@ -98,67 +114,105 @@ class EditIsiKelasPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 8),
 
-                ...gurus.map(
-                  (g) => ListTile(
+                ...gurus.map((g) {
+                  final rowId = g.id;
+                  final hasLinkedAccount = (g.idUserGuru ?? '')
+                      .trim()
+                      .isNotEmpty;
+
+                  return ListTile(
                     leading: const Icon(Icons.school),
-                    title: Text(g),
-                    trailing: IconButton(
-                      tooltip: 'Ganti Guru',
-                      icon: const Icon(Icons.swap_horiz),
-                      onPressed: () async {
-                        final picked = await showPilihGuruDialog(context);
-                        if (picked == null) return;
+                    title: Text(g.namaGuru ?? '-'),
 
-                        final session = ref.read(sessionProvider);
-                        final uid = session.userId;
-                        if (uid == null) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Session tidak valid. Silakan login ulang.',
-                                ),
-                              ),
-                            );
-                          }
-                          return;
-                        }
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (hasLinkedAccount &&
+                            ref.read(sessionProvider).role == 'admin')
+                          IconButton(
+                            icon: const Icon(Icons.link_off),
+                            tooltip: 'Unlink (hapus id_user_guru)',
+                            onPressed: () async {
+                              if (rowId == null) return;
 
-                        try {
-                          await ref
-                              .read(isiRuangKelasProvider)
-                              .updateData(
-                                isiruangkelasId: idRuangKelas,
-                                idUserGuru: uid,
-                                idDataGuru: picked.idDataGuru,
+                              final ok = await confirm(
+                                context,
+                                title: 'Unlink guru?',
+                                msg:
+                                    'Unlink hanya menghapus id_user_guru (akun). id_data_guru tetap.',
+                              );
+                              if (!ok) return;
+
+                              await ref
+                                  .read(isiRuangKelasProvider)
+                                  .unlinkGuru(isiruangkelasId: rowId);
+
+                              ref.invalidate(
+                                isiRuangKelasNamaProvider(idRuangKelas),
+                              );
+                            },
+                          ),
+
+                        IconButton(
+                          icon: const Icon(Icons.swap_horiz),
+                          tooltip: 'Ganti Guru',
+                          onPressed: () async {
+                            final picked = await showPilihGuruDialog(context);
+                            if (picked == null) return;
+
+                            final session = ref.read(sessionProvider);
+                            final uid = session.userId;
+                            if (uid == null) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Session tidak valid. Silakan login ulang.',
+                                    ),
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                            try {
+
+                                if (rowId == null) return;
+                                await ref
+                                    .read(isiRuangKelasProvider)
+                                    .updateDataByAdmin(
+                                      isiruangkelasId: rowId,
+                                      idDataGuru: picked.idDataGuru,
+                                    );
+                              
+
+                              ref.invalidate(
+                                isiRuangKelasNamaProvider(idRuangKelas),
                               );
 
-                          ref.invalidate(
-                            isiRuangKelasNamaProvider(idRuangKelas),
-                          );
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Guru berhasil diganti menjadi: ${picked.namaLengkap}',
-                                ),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Gagal mengganti guru: $e'),
-                              ),
-                            );
-                          }
-                        }
-                      },
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      'Guru berhasil diganti menjadi: ${picked.namaLengkap}',
+                                    ),
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Gagal mengganti guru: $e'),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                  ),
-                ),
+                  );
+                }),
 
                 const Divider(height: 24),
               ] else if (gurus.isEmpty) ...[
@@ -191,36 +245,69 @@ class EditIsiKelasPage extends ConsumerWidget {
                           throw Exception(
                             'Session tidak valid. Silakan login ulang.',
                           );
+                        final role = session.role;
+                        if (role == 'admin') {
+                          try {
+                            await ref
+                                .read(isiRuangKelasProvider)
+                                .tambahGuru(
+                                  idRuangKelas: idRuangKelas,
+                                  idDataGuru: picked.idDataGuru,
+                                );
 
-                        try {
-                          await ref
-                              .read(isiRuangKelasProvider)
-                              .updateData(
-                                isiruangkelasId: idRuangKelas,
-                                idUserGuru: uid,
-                                idDataGuru: picked.idDataGuru,
-                              );
+                            ref.invalidate(
+                              isiRuangKelasNamaProvider(idRuangKelas),
+                            );
 
-                          ref.invalidate(
-                            isiRuangKelasNamaProvider(idRuangKelas),
-                          );
-
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  'Data Guru ditambahkan: ${picked.namaLengkap}',
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Guru berhasil diganti menjadi: ${picked.namaLengkap}',
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Gagal mengganti guru: $e'),
+                                ),
+                              );
+                            }
                           }
-                        } catch (e) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Gagal tambah data guru: $e'),
-                              ),
+                        } else {
+                          try {
+                            await ref
+                                .read(isiRuangKelasProvider)
+                                .updateData(
+                                  isiruangkelasId: idRuangKelas,
+                                  idUserGuru: uid,
+                                  idDataGuru: picked.idDataGuru,
+                                );
+
+                            ref.invalidate(
+                              isiRuangKelasNamaProvider(idRuangKelas),
                             );
+
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    'Data Guru ditambahkan: ${picked.namaLengkap}',
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Gagal tambah data guru: $e'),
+                                ),
+                              );
+                            }
                           }
                         }
                       },
@@ -239,18 +326,16 @@ class EditIsiKelasPage extends ConsumerWidget {
                 const Text('Belum ada siswa.')
               else
                 ...siswas.map((s) {
-                  final rowId = s.id; 
+                  final rowId = s.id;
                   final nama = (s.namaSiswa ?? '-').trim();
                   return Card(
                     child: ListTile(
                       leading: const Icon(Icons.person),
                       title: Text(nama),
-                      
 
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-
                           if ((s.idUserSiswa ?? '').trim().isNotEmpty)
                             IconButton(
                               tooltip: 'Unlink (hapus id_user_siswa)',
@@ -311,5 +396,4 @@ class EditIsiKelasPage extends ConsumerWidget {
       ),
     );
   }
-  
 }

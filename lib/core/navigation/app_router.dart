@@ -13,10 +13,10 @@ import '../../features/auth/pages/login_page.dart';
 import '../../features/auth/pages/register_page.dart';
 import '../../features/akun/pages/akun_list_page.dart';
 import '../../features/guru/pages/guru_list_page.dart';
-import '../../features/kelas/pages/kelas_list_page.dart';
+import '../../features/kelas/pages/kelas_list_page(admin).dart';
 import '../../features/profile/pages/profile_page.dart';
-import '../../features/kelas/pages/kelas_list_guru_page.dart';
-import '../../features/kelas/pages/kelas_list_siswa_page.dart';
+import '../../features/kelas/pages/kelas_list_guru_page(guru).dart';
+import '../../features/kelas/pages/kelas_list_siswa_page(siswa).dart';
 import '../../features/laporan/pages/laporan_kepsek_page.dart';
 
 

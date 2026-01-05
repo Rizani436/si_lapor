@@ -12,7 +12,7 @@ import '../../kelas/models/kelas_model.dart';
 
 import '../providers/laporan_siswa_provider.dart';
 import '../providers/rapor_provider.dart'; 
-import '../pages/laporan_siswa_form_page.dart';
+import 'laporan_siswa_form_page(guru).dart';
 import '../widgets/laporan_siswa_tile.dart';
 
 class LaporanSiswaListPage extends ConsumerStatefulWidget {

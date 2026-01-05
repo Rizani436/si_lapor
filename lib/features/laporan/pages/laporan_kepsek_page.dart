@@ -43,11 +43,6 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
           key: _formKey,
           child: ListView(
             children: [
-              const Text(
-                'Laporan Keseluruhan Kepala Sekolah',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 10),
 
               TextFormField(
                 controller: tahunPelajaranC,

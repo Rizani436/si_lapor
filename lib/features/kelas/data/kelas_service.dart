@@ -136,11 +136,11 @@ class KelasService {
     await _db.from('kelasalquran').delete().eq('id_kelas', idKelas);
   }
 
-  Future<List<KelasModel>> getAllMy(String userId) async {
+  Future<List<KelasModel>> getAllMy(String id_user_guru) async {
     final cekRes = await _db
         .from('isiruangkelas')
         .select('id_ruang_kelas')
-        .eq('id_user_guru', userId);
+        .eq('id_user_guru', id_user_guru);
 
     final cek = (cekRes as List).cast<Map<String, dynamic>>();
     if (cek.isEmpty) return [];
@@ -173,11 +173,11 @@ class KelasService {
     return list.map(KelasModel.fromJson).toList();
   }
 
-  Future<List<KelasModel>> getAllMySiswa(String userId) async {
+  Future<List<KelasModel>> getAllMySiswa(String id_user_siswa) async {
     final cekRes = await _db
         .from('isiruangkelas')
         .select('id_ruang_kelas')
-        .eq('id_user_siswa', userId);
+        .eq('id_user_siswa', id_user_siswa);
 
     final cek = (cekRes as List).cast<Map<String, dynamic>>();
     if (cek.isEmpty) return [];
@@ -255,11 +255,11 @@ class KelasService {
     return temp;
   }
 
-  Future<int?> getMy(String idUser, int idKelas) async {
+  Future<int?> getMy(String id_user_siswa, int idKelas) async {
     final res = await _db
         .from('isiruangkelas')
         .select('id_data_siswa')
-        .eq('id_user_siswa', idUser)
+        .eq('id_user_siswa', id_user_siswa)
         .eq('id_ruang_kelas', idKelas)
         .maybeSingle();
 

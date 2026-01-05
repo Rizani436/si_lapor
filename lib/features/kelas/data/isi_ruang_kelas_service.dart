@@ -5,18 +5,18 @@ class IsiRuangKelasService {
   final SupabaseClient _db;
   IsiRuangKelasService(this._db);
 
-  Future<List<IsiRuangKelasModel>> getByRuangKelas(int idRuangKelas) async {
-    final res = await _db
-        .from('isiruangkelas')
-        .select(
-          'id, id_ruang_kelas, id_data_siswa, id_data_guru, id_user_siswa, id_user_guru',
-        )
-        .eq('id_ruang_kelas', idRuangKelas)
-        .order('id', ascending: true);
+  // Future<List<IsiRuangKelasModel>> getByRuangKelas(int idRuangKelas) async {
+  //   final res = await _db
+  //       .from('isiruangkelas')
+  //       .select(
+  //         'id, id_ruang_kelas, id_data_siswa, id_data_guru, id_user_siswa, id_user_guru',
+  //       )
+  //       .eq('id_ruang_kelas', idRuangKelas)
+  //       .order('id', ascending: true);
 
-    final list = (res as List).cast<Map<String, dynamic>>();
-    return list.map(IsiRuangKelasModel.fromJson).toList();
-  }
+  //   final list = (res as List).cast<Map<String, dynamic>>();
+  //   return list.map(IsiRuangKelasModel.fromJson).toList();
+  // }
 
   Future<List<IsiRuangKelasModel>> getIsiRuangKelasByRuang(
     int idRuangKelas,
@@ -51,6 +51,26 @@ class IsiRuangKelasService {
     });
   }
 
+  Future<void> tambahGuru({
+    required int idRuangKelas,
+    required int idDataGuru,
+  }) async {
+    await _db.from('isiruangkelas').insert({
+      'id_ruang_kelas': idRuangKelas,
+      'id_data_guru': idDataGuru,
+    });
+  }
+
+  Future<void> updateDataByAdmin({
+    required int isiruangkelasId,
+    required int idDataGuru,
+  }) async {
+    await _db
+        .from('isiruangkelas')
+        .update({'id_data_guru': idDataGuru})
+        .eq('id', isiruangkelasId);
+  }
+
   Future<void> updateData({
     required int isiruangkelasId,
     required String idUserGuru,
@@ -61,6 +81,13 @@ class IsiRuangKelasService {
         .update({'id_data_guru': idDataGuru})
         .eq('id_ruang_kelas', isiruangkelasId)
         .eq('id_user_guru', idUserGuru);
+  }
+
+  Future<void> unlinkGuru({required int isiruangkelasId}) async {
+    await _db
+        .from('isiruangkelas')
+        .update({'id_user_guru': null})
+        .eq('id', isiruangkelasId);
   }
 
   Future<void> unlinkSiswa({required int isiruangkelasId}) async {
@@ -74,17 +101,32 @@ class IsiRuangKelasService {
     await _db.from('isiruangkelas').delete().eq('id', isiruangkelasId);
   }
 
-Future<String?> getIdUser({
-  required int isiruangkelasId,
+  Future<String?> getIdUser({
+    required int isiruangkelasId,
+    required int idDataSiswa,
+  }) async {
+    final res = await _db
+        .from('isiruangkelas')
+        .select('id_user_siswa')
+        .eq('id_ruang_kelas', isiruangkelasId)
+        .eq('id_data_siswa', idDataSiswa)
+        .single();
+
+    return res['id_user_siswa'] as String?;
+  }
+
+  Future<bool> cekIdDataSiswa({
+  required int idRuangKelas,
   required int idDataSiswa,
 }) async {
   final res = await _db
       .from('isiruangkelas')
-      .select('id_user_siswa')
-      .eq('id_ruang_kelas', isiruangkelasId)
+      .select('id')
+      .eq('id_ruang_kelas', idRuangKelas)
       .eq('id_data_siswa', idDataSiswa)
-      .single();
+      .maybeSingle();
 
-  return res['id_user_siswa'] as String?;
+  return res != null;
 }
+
 }

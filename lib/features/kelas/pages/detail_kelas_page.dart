@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/kelas_model.dart';
 import '../providers/isi_ruang_kelas_provider.dart';
 import 'edit_isi_kelas_page.dart';
-import '../../laporan/pages/laporan_siswa_list_page.dart';
+import '../../laporan/pages/laporan_siswa_list_page(guru).dart';
 import '../../siswa/providers/siswa_provider.dart';
 
 class DetailKelasPage extends ConsumerStatefulWidget {

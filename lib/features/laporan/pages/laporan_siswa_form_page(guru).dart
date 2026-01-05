@@ -292,8 +292,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         final uid = await ref
             .read(isiRuangKelasProvider)
             .getIdUser(isiruangkelasId: idRuangKelas, idDataSiswa: idDataSiswa);
-        print("uid");
-        print(uid);
 
         if (uid != null) {
           await ref
@@ -349,7 +347,7 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Data Siswa',
+                        'Biodata Siswa',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,

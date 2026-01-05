@@ -4,8 +4,8 @@ import '../models/kelas_model.dart';
 import '../providers/kelas_guru_provider.dart';
 import '../providers/kelas_siswa_provider.dart';
 import '../widgets/kelas_siswa_tile.dart';
-import 'detail_kelas_siswa_page.dart';
-import '../pages/gabung_kelas_page.dart';
+import 'detail_kelas_siswa_page(siswa).dart';
+import 'gabung_kelas_page(siswa).dart';
 import '../../laporan/pages/laporan_list_page.dart';
 import '../../siswa/providers/siswa_provider.dart';
 

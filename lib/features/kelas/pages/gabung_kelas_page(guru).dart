@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/gabung_kelas_provider.dart';
-import '../pages/kelas_list_siswa_page.dart';
+import '../providers/gabung_kelas_provider(guru).dart';
+import 'kelas_list_guru_page(guru).dart';
 import '../providers/kelas_siswa_provider.dart';
-import '../widgets/result_card.dart';
+import '../widgets/result_card_guru.dart';
 
-class GabungKelasPage extends ConsumerStatefulWidget {
-  const GabungKelasPage({super.key});
+class GabungKelasPageGuru extends ConsumerStatefulWidget {
+  const GabungKelasPageGuru({super.key});
 
   @override
-  ConsumerState<GabungKelasPage> createState() => _GabungKelasPageState();
+  ConsumerState<GabungKelasPageGuru> createState() => _GabungKelasPageGuruState();
 }
 
-class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
+class _GabungKelasPageGuruState extends ConsumerState<GabungKelasPageGuru> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController kodeKelasC;
 
@@ -24,15 +24,15 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
 
   @override
   void dispose() {
-    ref.read(gabungKelasProvider.notifier).reset();
+    ref.read(gabungKelasProviderGuru.notifier).reset();
     kodeKelasC.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final st = ref.watch(gabungKelasProvider);
-    final notifier = ref.read(gabungKelasProvider.notifier);
+    final st = ref.watch(gabungKelasProviderGuru);
+    final notifier = ref.read(gabungKelasProviderGuru.notifier);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Gabung Kelas')),
@@ -83,7 +83,7 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
-                  child: ResultCard(st: st, notifier: notifier),
+                  child: ResultCardGuru(st: st, notifier: notifier),
                 ),
               ),
 
@@ -107,7 +107,7 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
                         ? null
                         : () async {
                             await notifier.konfirmasiGabung();
-                            final latest = ref.read(gabungKelasProvider);
+                            final latest = ref.read(gabungKelasProviderGuru);
 
                             if (!context.mounted) return;
 
@@ -120,14 +120,11 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
                                   content: Text('Berhasil gabung kelas!'),
                                 ),
                               );
-                              await ref
-                                  .read(kelasSiswaListProvider.notifier)
-                                  .refresh();
-
+                              
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(
-                                  builder: (_) => const KelasListSiswaPage(),
+                                  builder: (_) => const KelasListGuruPage(),
                                 ),
                               );
                             }
