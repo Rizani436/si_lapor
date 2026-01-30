@@ -4,8 +4,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../models/guru_model.dart';
 import '../providers/guru_import_provider.dart';
 import '../providers/guru_provider.dart';
 import '../widgets/guru_tile.dart';
@@ -20,8 +22,11 @@ class GuruListPage extends ConsumerStatefulWidget {
 
 class _GuruListPageState extends ConsumerState<GuruListPage> {
   final _search = TextEditingController();
+  final Set<int> _selectedIds = {};
+  bool get _isSelectionMode => _selectedIds.isNotEmpty;
+  List<GuruModel> _filtered = [];
 
-  String? _filterJk; 
+  String? _filterJk;
   int? _filterStatus;
   bool _showFilters = false;
 
@@ -42,9 +47,7 @@ class _GuruListPageState extends ConsumerState<GuruListPage> {
 
       await file.writeAsBytes(data.buffer.asUint8List(), flush: true);
 
-      await Share.shareXFiles([
-        XFile(file.path),
-      ], text: 'Template Import Guru');
+      await Share.shareXFiles([XFile(file.path)], text: 'Template Import Guru');
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
@@ -53,12 +56,22 @@ class _GuruListPageState extends ConsumerState<GuruListPage> {
     }
   }
 
+  void _toggleSelect(GuruModel s) {
+    setState(() {
+      if (_selectedIds.contains(s.idDataGuru)) {
+        _selectedIds.remove(s.idDataGuru);
+      } else {
+        _selectedIds.add(s.idDataGuru!);
+      }
+    });
+  }
+
   Future<void> _importExcel(BuildContext context) async {
     try {
       final picked = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
-        withData: true, 
+        withData: true,
       );
 
       if (picked == null) return;
@@ -109,6 +122,89 @@ class _GuruListPageState extends ConsumerState<GuruListPage> {
     }
   }
 
+  Future<void> _confirmDeleteSelected() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Hapus guru'),
+        content: Text('Yakin hapus ${_selectedIds.length} guru terpilih?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      for (final id in _selectedIds) {
+        await ref.read(guruListProvider.notifier).remove(id);
+      }
+      setState(_selectedIds.clear);
+    }
+  }
+
+  Future<void> _deleteSelected() async {
+    final ids = _selectedIds.toList();
+    for (final id in ids) {
+      await ref.read(guruListProvider.notifier).remove(id);
+    }
+    setState(() => _selectedIds.clear());
+  }
+
+  void _selectAll() {
+    setState(() {
+      _selectedIds
+        ..clear()
+        ..addAll(_filtered.map((e) => e.idDataGuru));
+    });
+  }
+
+  Future<void> _downloadSelectedAsXlsx() async {
+    if (_selectedIds.isEmpty) return;
+
+    final selected = _filtered
+        .where((s) => _selectedIds.contains(s.idDataGuru))
+        .toList();
+
+    final excel = Excel.createExcel();
+    final sheet = excel['Sheet1'];
+
+    final headers = [
+      'nama_lengkap',
+      'nip',
+      'alamat',
+      'jenis_kelamin',
+      'ket_aktif',
+    ];
+
+    sheet.appendRow(headers.map((e) => TextCellValue(e)).toList());
+
+    for (final s in selected) {
+      sheet.appendRow([
+        TextCellValue(s.namaLengkap),
+        TextCellValue(s.nip),
+        TextCellValue(s.alamat ?? ''),
+        TextCellValue(s.jenisKelamin),
+        TextCellValue(s.isAktif ? '1' : '0'),
+      ]);
+    }
+
+    final dir = await getTemporaryDirectory();
+    final file = File(
+      '${dir.path}/data_guru_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+    );
+
+    await file.writeAsBytes(excel.encode()!);
+
+    await Share.shareXFiles([XFile(file.path)], text: 'Data Guru');
+  }
+
   @override
   Widget build(BuildContext context) {
     final guruAsync = ref.watch(guruListProvider);
@@ -119,30 +215,63 @@ class _GuruListPageState extends ConsumerState<GuruListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kelola Guru'),
-        actions: [
-          IconButton(
-            tooltip: 'Download Template',
-            icon: const Icon(Icons.file_download),
-            onPressed: () => _downloadTemplate(context),
-          ),
-          IconButton(
-            tooltip: 'Import Excel',
-            icon: importing
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.upload_file),
-            onPressed: importing ? null : () => _importExcel(context),
-          ),
-          IconButton(
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(guruListProvider.notifier).refresh(),
-          ),
-        ],
+        title: _isSelectionMode
+            ? Text('${_selectedIds.length} dipilih')
+            : const Text('Kelola Guru'),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(_selectedIds.clear),
+              )
+            : null,
+        actions: _isSelectionMode
+            ? [
+                IconButton(
+                  tooltip: 'Pilih Semua',
+                  icon: const Icon(Icons.select_all),
+                  onPressed: () {
+                    setState(() {
+                      _selectedIds
+                        ..clear()
+                        ..addAll(_filtered.map((e) => e.idDataGuru!));
+                    });
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Download',
+                  icon: const Icon(Icons.download),
+                  onPressed: () => _downloadSelectedAsXlsx(),
+                ),
+                IconButton(
+                  tooltip: 'Hapus',
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _confirmDeleteSelected(),
+                ),
+              ]
+            : [
+                IconButton(
+                  tooltip: 'Download Template',
+                  icon: const Icon(Icons.file_download),
+                  onPressed: () => _downloadTemplate(context),
+                ),
+                IconButton(
+                  tooltip: 'Import Excel',
+                  icon: importing
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.upload_file),
+                  onPressed: importing ? null : () => _importExcel(context),
+                ),
+                IconButton(
+                  tooltip: 'Refresh',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () =>
+                      ref.read(guruListProvider.notifier).refresh(),
+                ),
+              ],
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
@@ -275,7 +404,7 @@ class _GuruListPageState extends ConsumerState<GuruListPage> {
               data: (list) {
                 final q = _search.text.trim().toLowerCase();
 
-                final filtered = list.where((s) {
+                _filtered = list.where((s) {
                   final okSearch =
                       q.isEmpty ||
                       s.namaLengkap.toLowerCase().contains(q) ||
@@ -288,28 +417,36 @@ class _GuruListPageState extends ConsumerState<GuruListPage> {
                   return okSearch && okJk && okStatus;
                 }).toList();
 
-                if (filtered.isEmpty) {
+                if (_filtered.isEmpty) {
                   return const Center(child: Text('Data guru kosong.'));
                 }
 
                 return ListView.separated(
-                  itemCount: filtered.length,
+                  itemCount: _filtered.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, i) {
-                    final s = filtered[i];
+                    final s = _filtered[i];
+                    final selected = _selectedIds.contains(s.idDataGuru);
                     return GuruTile(
                       s: s,
-                      onTap: () async {
-                        final ok = await Navigator.push<bool>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => GuruFormPage(existing: s),
-                          ),
-                        );
-                        if (ok == true && context.mounted) {
-                          ref.read(guruListProvider.notifier).refresh();
+                      selected: selected,
+                      onTap: () {
+                        if (_isSelectionMode) {
+                          _toggleSelect(s);
+                          return;
+                        } else {
+                          final ok = Navigator.push<bool>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => GuruFormPage(existing: s),
+                            ),
+                          );
+                          if (ok == true && context.mounted) {
+                            ref.read(guruListProvider.notifier).refresh();
+                          }
                         }
                       },
+                      onLongPress: () => _toggleSelect(s),
                       onToggleAktif: () async {
                         await ref
                             .read(guruListProvider.notifier)

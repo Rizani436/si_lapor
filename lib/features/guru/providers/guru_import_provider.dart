@@ -71,9 +71,34 @@ class GuruImportController extends AsyncNotifier<ImportResult?> {
       for (int r = 1; r < sheet.rows.length; r++) {
         final row = sheet.rows[r];
 
-        String cell(int idx) {
+         String cell(int idx) {
           if (idx < 0 || idx >= row.length) return '';
-          return (row[idx]?.value?.toString() ?? '').trim();
+
+          final c = row[idx];
+          if (c == null || c.value == null) return '';
+
+          final v = c.value!;
+
+          if (v is TextCellValue) {
+            return v.value.toString().trim();
+          }
+
+          if (v is IntCellValue) {
+            return v.value.toString();
+          }
+
+          if (v is DoubleCellValue) {
+            return v.value.toInt().toString();
+          }
+
+          if (v is DateCellValue) {
+            final d = v.asDateTimeLocal();
+            return '${d.year.toString().padLeft(4, '0')}-'
+                '${d.month.toString().padLeft(2, '0')}-'
+                '${d.day.toString().padLeft(2, '0')}';
+          }
+
+          return v.toString().trim();
         }
 
         final nama = cell(col('nama_lengkap'));

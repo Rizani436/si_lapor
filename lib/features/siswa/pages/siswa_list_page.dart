@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:excel/excel.dart';
+
 
 import '../models/siswa_model.dart';
 import '../providers/siswa_import_provider.dart';
@@ -13,7 +15,6 @@ import '../providers/siswa_provider.dart';
 import '../widgets/siswa_tile.dart';
 import 'siswa_form_page.dart';
 import '../../../core/utils/error_mapper.dart';
-
 
 class SiswaListPage extends ConsumerStatefulWidget {
   const SiswaListPage({super.key});
@@ -24,9 +25,12 @@ class SiswaListPage extends ConsumerStatefulWidget {
 
 class _SiswaListPageState extends ConsumerState<SiswaListPage> {
   final _search = TextEditingController();
+  final Set<int> _selectedIds = {};
+  bool get _isSelectionMode => _selectedIds.isNotEmpty;
+  List<SiswaModel> _filtered = [];
 
-  String? _filterTahun; 
-  String? _filterJk; 
+  String? _filterTahun;
+  String? _filterJk;
   int? _filterStatus;
   bool _showFilters = false;
 
@@ -53,10 +57,20 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
     } catch (e) {
       final error = ErrorMapper.fromGeneric(e);
       if (!context.mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Gagal download template: $error')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal download template: $error')),
+      );
     }
+  }
+
+  void _toggleSelect(SiswaModel s) {
+    setState(() {
+      if (_selectedIds.contains(s.idDataSiswa)) {
+        _selectedIds.remove(s.idDataSiswa);
+      } else {
+        _selectedIds.add(s.idDataSiswa!);
+      }
+    });
   }
 
   Future<void> _importExcel(BuildContext context) async {
@@ -64,7 +78,7 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
       final picked = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['xlsx'],
-        withData: true, 
+        withData: true,
       );
 
       if (picked == null) return;
@@ -107,14 +121,105 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
           ],
         ),
       );
-    }  catch (e) {
+    } catch (e) {
       final error = ErrorMapper.fromGeneric(e);
-      
+
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Import gagal: $error')));
     }
+  }
+
+  Future<void> _confirmDeleteSelected() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Hapus siswa'),
+        content: Text('Yakin hapus ${_selectedIds.length} siswa terpilih?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+
+    if (ok == true) {
+      for (final id in _selectedIds) {
+        await ref.read(siswaListProvider.notifier).remove(id);
+      }
+      setState(_selectedIds.clear);
+    }
+  }
+
+  Future<void> _deleteSelected() async {
+    final ids = _selectedIds.toList();
+    for (final id in ids) {
+      await ref.read(siswaListProvider.notifier).remove(id);
+    }
+    setState(() => _selectedIds.clear());
+  }
+
+  void _selectAll() {
+    setState(() {
+      _selectedIds
+        ..clear()
+        ..addAll(_filtered.map((e) => e.idDataSiswa));
+    });
+  }
+
+  Future<void> _downloadSelectedAsXlsx() async {
+    if (_selectedIds.isEmpty) return;
+
+    final selected = _filtered
+        .where((s) => _selectedIds.contains(s.idDataSiswa))
+        .toList();
+
+    final excel = Excel.createExcel();
+    final sheet = excel['Sheet1'];
+
+    final headers = [
+      'nama_lengkap',
+      'nis',
+      'alamat',
+      'jenis_kelamin',
+      'tahun_masuk',
+      'tanggal_lahir',
+      'ket_aktif',
+    ];
+
+    sheet.appendRow(headers.map((e) => TextCellValue(e)).toList());
+
+    for (final s in selected) {
+      sheet.appendRow([
+        TextCellValue(s.namaLengkap),
+        TextCellValue(s.nis),
+        TextCellValue(s.alamat ?? ''),
+        TextCellValue(s.jenisKelamin),
+        TextCellValue(s.tahunMasuk),
+        TextCellValue(
+          s.tanggalLahir != null
+              ? s.tanggalLahir!.toIso8601String().split('T').first
+              : '',
+        ),
+        TextCellValue(s.isAktif ? '1' : '0'),
+      ]);
+    }
+
+    final dir = await getTemporaryDirectory();
+    final file = File(
+      '${dir.path}/data_siswa_${DateTime.now().millisecondsSinceEpoch}.xlsx',
+    );
+
+    await file.writeAsBytes(excel.encode()!);
+
+    await Share.shareXFiles([XFile(file.path)], text: 'Data Siswa');
   }
 
   @override
@@ -136,30 +241,63 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Kelola Siswa'),
-        actions: [
-          IconButton(
-            tooltip: 'Download Template',
-            icon: const Icon(Icons.file_download),
-            onPressed: () => _downloadTemplate(context),
-          ),
-          IconButton(
-            tooltip: 'Import Excel',
-            icon: importing
-                ? const SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.upload_file),
-            onPressed: importing ? null : () => _importExcel(context),
-          ),
-          IconButton(
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.read(siswaListProvider.notifier).refresh(),
-          ),
-        ],
+        title: _isSelectionMode
+            ? Text('${_selectedIds.length} dipilih')
+            : const Text('Kelola Siswa'),
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () => setState(_selectedIds.clear),
+              )
+            : null,
+        actions: _isSelectionMode
+            ? [
+                IconButton(
+                  tooltip: 'Pilih Semua',
+                  icon: const Icon(Icons.select_all),
+                  onPressed: () {
+                    setState(() {
+                      _selectedIds
+                        ..clear()
+                        ..addAll(_filtered.map((e) => e.idDataSiswa!));
+                    });
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Download',
+                  icon: const Icon(Icons.download),
+                  onPressed: () => _downloadSelectedAsXlsx(),
+                ),
+                IconButton(
+                  tooltip: 'Hapus',
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _confirmDeleteSelected(),
+                ),
+              ]
+            : [
+                IconButton(
+                  tooltip: 'Download Template',
+                  icon: const Icon(Icons.file_download),
+                  onPressed: () => _downloadTemplate(context),
+                ),
+                IconButton(
+                  tooltip: 'Import Excel',
+                  icon: importing
+                      ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.upload_file),
+                  onPressed: importing ? null : () => _importExcel(context),
+                ),
+                IconButton(
+                  tooltip: 'Refresh',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () =>
+                      ref.read(siswaListProvider.notifier).refresh(),
+                ),
+              ],
       ),
       floatingActionButton: FloatingActionButton(
         child: const Icon(Icons.add),
@@ -219,7 +357,6 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
                 spacing: 10,
                 runSpacing: 10,
                 children: [
-
                   SizedBox(
                     width: 160,
                     child: DropdownButtonFormField<String?>(
@@ -321,7 +458,9 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
               data: (list) {
                 final q = _search.text.trim().toLowerCase();
 
-                final filtered = list.where((s) {
+                _filtered = list.where((s) {
+                  final q = _search.text.trim().toLowerCase();
+
                   final okSearch =
                       q.isEmpty ||
                       s.namaLengkap.toLowerCase().contains(q) ||
@@ -336,19 +475,26 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
                   return okSearch && okTahun && okJk && okStatus;
                 }).toList();
 
-                if (filtered.isEmpty) {
+                if (_filtered.isEmpty) {
                   return const Center(child: Text('Data siswa kosong.'));
                 }
 
                 return ListView.separated(
-                  itemCount: filtered.length,
+                  itemCount: _filtered.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),
                   itemBuilder: (context, i) {
-                    final s = filtered[i];
+                    final s = _filtered[i];
+                    final selected = _selectedIds.contains(s.idDataSiswa);
+
                     return SiswaTile(
                       s: s,
-                      onTap: () async {
-                        final ok = await Navigator.push<bool>(
+                      selected: selected,
+                      onTap: () {
+                        if (_isSelectionMode) {
+                          _toggleSelect(s);
+                          return;
+                        }else{
+                          final ok = Navigator.push<bool>(
                           context,
                           MaterialPageRoute(
                             builder: (_) => SiswaFormPage(existing: s),
@@ -357,7 +503,11 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
                         if (ok == true && context.mounted) {
                           ref.read(siswaListProvider.notifier).refresh();
                         }
+                        }
+
+
                       },
+                      onLongPress: () => _toggleSelect(s),
                       onToggleAktif: () async {
                         await ref
                             .read(siswaListProvider.notifier)

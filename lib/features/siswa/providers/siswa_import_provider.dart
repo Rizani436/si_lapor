@@ -22,8 +22,8 @@ class ImportResult {
 
 final siswaImportControllerProvider =
     AsyncNotifierProvider<SiswaImportController, ImportResult?>(
-  SiswaImportController.new,
-);
+      SiswaImportController.new,
+    );
 
 class SiswaImportController extends AsyncNotifier<ImportResult?> {
   late final SiswaImportService _service = ref.read(siswaImportServiceProvider);
@@ -75,7 +75,32 @@ class SiswaImportController extends AsyncNotifier<ImportResult?> {
 
         String cell(int idx) {
           if (idx < 0 || idx >= row.length) return '';
-          return (row[idx]?.value?.toString() ?? '').trim();
+
+          final c = row[idx];
+          if (c == null || c.value == null) return '';
+
+          final v = c.value!;
+
+          if (v is TextCellValue) {
+            return v.value.toString().trim();
+          }
+
+          if (v is IntCellValue) {
+            return v.value.toString();
+          }
+
+          if (v is DoubleCellValue) {
+            return v.value.toInt().toString();
+          }
+
+          if (v is DateCellValue) {
+            final d = v.asDateTimeLocal();
+            return '${d.year.toString().padLeft(4, '0')}-'
+                '${d.month.toString().padLeft(2, '0')}-'
+                '${d.day.toString().padLeft(2, '0')}';
+          }
+
+          return v.toString().trim();
         }
 
         final nama = cell(col('nama_lengkap'));
@@ -86,8 +111,15 @@ class SiswaImportController extends AsyncNotifier<ImportResult?> {
         final tgl = cell(col('tanggal_lahir'));
         final aktifStr = cell(col('ket_aktif'));
 
-        final isEmptyRow = [nama, nis, alamat, jk, tahunMasuk, tgl, aktifStr]
-            .every((e) => e.isEmpty);
+        final isEmptyRow = [
+          nama,
+          nis,
+          alamat,
+          jk,
+          tahunMasuk,
+          tgl,
+          aktifStr,
+        ].every((e) => e.isEmpty);
         if (isEmptyRow) continue;
 
         if (nis.isEmpty) {
