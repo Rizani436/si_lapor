@@ -9,15 +9,20 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
+import '../../../core/utils/ringkas_item.dart';
 
 import '../providers/laporan_siswa_provider.dart';
-import '../providers/rapor_provider.dart'; 
+import '../providers/rapor_provider.dart';
+import '../providers/laporan_ringkas_provider.dart';
 import 'laporan_siswa_form_page(guru).dart';
 import '../widgets/laporan_siswa_tile.dart';
+
+enum LaporanViewMode { harian, ringkas }
 
 class LaporanSiswaListPage extends ConsumerStatefulWidget {
   final SiswaModel? existing;
   final KelasModel? existingKelas;
+
   const LaporanSiswaListPage({super.key, this.existing, this.existingKelas});
 
   @override
@@ -28,8 +33,12 @@ class LaporanSiswaListPage extends ConsumerStatefulWidget {
 class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
   final _formKey = GlobalKey<FormState>();
 
+  LaporanViewMode _viewMode = LaporanViewMode.harian;
+
   SiswaModel? siswa;
   KelasModel? kelas;
+  DateTime? startDate;
+  DateTime? endDate;
 
   DateTime? selectedDate;
 
@@ -123,6 +132,26 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     _startAutoRefresh();
   }
 
+  Future<void> _pickRangeDate() async {
+    final now = DateTime.now();
+
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(now.year - 1),
+      lastDate: DateTime(now.year + 1),
+      initialDateRange: (startDate != null && endDate != null)
+          ? DateTimeRange(start: startDate!, end: endDate!)
+          : null,
+    );
+
+    if (picked != null) {
+      setState(() {
+        startDate = picked.start;
+        endDate = picked.end;
+      });
+    }
+  }
+
   Future<void> _uploadRaporGuru() async {
     final idDataSiswa = siswa?.idDataSiswa;
     final idRuangKelas = kelas?.idRuangKelas;
@@ -135,7 +164,7 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: const ['pdf', 'doc', 'docx'],
-      withData: true, 
+      withData: true,
     );
     if (result == null || result.files.isEmpty) return;
 
@@ -206,6 +235,236 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     } catch (e) {
       toast('Gagal hapus rapor: $e');
     }
+  }
+
+  Widget _buildLaporanHarian({
+    required bool canLoad,
+    required AsyncValue<List<Map<String, dynamic>>>? laporanAsync,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Daftar Laporan Harian',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+
+        const SizedBox(height: 12),
+
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.event),
+          title: const Text('Tanggal'),
+          subtitle: Text(selectedDate == null ? '-' : _fmtDate(selectedDate!)),
+          trailing: TextButton(
+            onPressed: _pickDate,
+            child: const Text('Pilih'),
+          ),
+        ),
+
+        const Divider(height: 24),
+
+        if (!canLoad)
+          const Text('Data siswa/kelas belum lengkap.')
+        else
+          laporanAsync!.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (e, _) => Text('Gagal memuat laporan: $e'),
+            data: (list) {
+              if (list.isEmpty) {
+                return const Text('Tidak ada laporan pada tanggal ini.');
+              }
+
+              return ListView.builder(
+                itemCount: list.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, r) {
+                  return LaporanSiswaTile(
+                    laporan: list[r],
+                    onEdit: list[r]['pelapor'] == 'Guru'
+                        ? () async {
+                            final changed = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => LaporanSiswaFormPage(
+                                  existing: siswa!,
+                                  existingKelas: kelas!,
+                                  existingIdLaporan:
+                                      list[r]['id_laporan'] as int,
+                                  existingLaporanRow: list[r],
+                                ),
+                              ),
+                            );
+
+                            if (changed == true) {
+                              final a = _providerArgs();
+                              if (a != null) {
+                                ref.invalidate(laporanByTanggalProvider(a));
+                              }
+                            }
+                          }
+                        : null,
+
+                    onDelete: list[r]['pelapor'] == 'Guru'
+                        ? () async {
+                            final id = list[r]['id_laporan'] as int?;
+                            if (id == null) return;
+
+                            final ok = await _confirmDelete(context);
+                            if (!ok) return;
+
+                            try {
+                              await ref
+                                  .read(laporanActionProvider.notifier)
+                                  .deleteLaporan(id);
+
+                              final a = _providerArgs();
+                              if (a != null) {
+                                ref.invalidate(laporanByTanggalProvider(a));
+                              }
+
+                              toast('Laporan dihapus');
+                            } catch (e) {
+                              toast('Gagal menghapus: $e');
+                            }
+                          }
+                        : null,
+                  );
+                },
+              );
+            },
+          ),
+
+        const SizedBox(height: 12),
+
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('Buat Laporan'),
+            onPressed:
+                (widget.existing == null ||
+                    widget.existingKelas == null ||
+                    selectedDate == null)
+                ? null
+                : () async {
+                    final changed = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => LaporanSiswaFormPage(
+                          existing: widget.existing!,
+                          existingKelas: widget.existingKelas!,
+                        ),
+                      ),
+                    );
+
+                    if (changed == true) {
+                      final args = _providerArgs();
+                      if (args != null) {
+                        ref.invalidate(laporanByTanggalProvider(args));
+                      }
+                    }
+                  },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLaporanRingkas() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Laporan Ringkas',
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          leading: const Icon(Icons.date_range),
+          title: const Text('Rentang Tanggal'),
+          subtitle: Text(
+            startDate == null || endDate == null
+                ? '-'
+                : '${_fmtDate(startDate!)} s/d ${_fmtDate(endDate!)}',
+          ),
+          trailing: TextButton(
+            onPressed: _pickRangeDate,
+            child: const Text('Pilih'),
+          ),
+        ),
+
+        const Divider(height: 24),
+
+        if (siswa == null ||
+            kelas == null ||
+            startDate == null ||
+            endDate == null)
+          const Text('Pilih siswa, kelas, dan rentang tanggal')
+        else
+          _buildRingkasContent(),
+      ],
+    );
+  }
+
+  Widget _buildRingkasContent() {
+    if (siswa == null ||
+        kelas == null ||
+        startDate == null ||
+        endDate == null) {
+      return const Text('Data belum lengkap');
+    }
+
+    final ringkasAsync = ref.watch(
+      laporanRingkasDetailProvider((
+        idSiswa: siswa!.idDataSiswa!,
+        idKelas: kelas!.idKelas!,
+        start: startDate!,
+        end: endDate!,
+      )),
+    );
+
+    return ringkasAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Text('Gagal memuat ringkasan: $e'),
+      data: (data) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildRingkasDetail('Ziyadah', data['ziyadah']!),
+            const SizedBox(height: 12),
+            _buildRingkasDetail('Murajaah', data['murajaah']!),
+            const SizedBox(height: 12),
+            _buildRingkasDetail('Tasmi', data['tasmi']!),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildRingkasDetail(String title, List<RingkasItem> items) {
+    if (items.isEmpty) {
+      return Text('$title: -');
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        ...items.map(
+          (e) => Padding(
+            padding: const EdgeInsets.only(left: 12, bottom: 4),
+            child: Text(
+              '• Juz ${e.juz} — ${e.surah} ayat ${e.ayat} (${e.tanggal} | ${e.pelapor})',
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -338,162 +597,34 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
               ),
 
               const SizedBox(height: 14),
-
+              SegmentedButton<LaporanViewMode>(
+                segments: const [
+                  ButtonSegment(
+                    value: LaporanViewMode.harian,
+                    label: Text('Harian'),
+                    icon: Icon(Icons.list),
+                  ),
+                  ButtonSegment(
+                    value: LaporanViewMode.ringkas,
+                    label: Text('Ringkas'),
+                    icon: Icon(Icons.dashboard),
+                  ),
+                ],
+                selected: {_viewMode},
+                onSelectionChanged: (value) {
+                  setState(() => _viewMode = value.first);
+                },
+              ),
+              const SizedBox(height: 14),
               Card(
                 child: Padding(
                   padding: const EdgeInsets.all(14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Daftar Laporan',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        leading: const Icon(Icons.event),
-                        title: const Text('Tanggal'),
-                        subtitle: Text(
-                          selectedDate == null ? '-' : _fmtDate(selectedDate!),
-                        ),
-                        trailing: TextButton(
-                          onPressed: _pickDate,
-                          child: const Text('Pilih'),
-                        ),
-                      ),
-                      const Divider(height: 24),
-
-                      if (!canLoad)
-                        const Padding(
-                          padding: EdgeInsets.only(bottom: 8),
-                          child: Text('Data siswa/kelas belum lengkap.'),
+                  child: _viewMode == LaporanViewMode.harian
+                      ? _buildLaporanHarian(
+                          canLoad: canLoad,
+                          laporanAsync: laporanAsync,
                         )
-                      else
-                        laporanAsync!.when(
-                          loading: () => const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 12),
-                            child: Center(child: CircularProgressIndicator()),
-                          ),
-                          error: (e, _) => Padding(
-                            padding: const EdgeInsets.only(bottom: 8),
-                            child: Text('Gagal memuat laporan: $e'),
-                          ),
-                          data: (list) {
-                            if (list.isEmpty) {
-                              return const Padding(
-                                padding: EdgeInsets.only(bottom: 8),
-                                child: Text(
-                                  'Tidak ada laporan pada tanggal ini.',
-                                ),
-                              );
-                            }
-
-                            return ListView.builder(
-                              itemCount: list.length,
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: (context, i) {
-                                final r = list[i];
-
-                                return LaporanSiswaTile(
-                                  laporan: r,
-                                  onEdit: r['pelapor'] == 'Guru'
-                                      ? () async {
-                                    final changed = await Navigator.push<bool>(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => LaporanSiswaFormPage(
-                                          existing: siswa!,
-                                          existingKelas: kelas!,
-                                          existingIdLaporan:
-                                              r['id_laporan'] as int,
-                                          existingLaporanRow: r,
-                                        ),
-                                      ),
-                                    );
-
-                                    if (changed == true) {
-                                      final a = _providerArgs();
-                                      if (a != null) {
-                                        ref.invalidate(
-                                          laporanByTanggalProvider(a),
-                                        );
-                                      }
-                                    }
-                                  }
-                                      : null,
-                                  onDelete: r['pelapor'] == 'Guru'
-                                      ? () async {
-                                    final id = r['id_laporan'] as int?;
-                                    if (id == null) return;
-
-                                    final ok = await _confirmDelete(context);
-                                    if (!ok) return;
-
-                                    try {
-                                      await ref
-                                          .read(laporanActionProvider.notifier)
-                                          .deleteLaporan(id);
-
-                                      final a = _providerArgs();
-                                      if (a != null) {
-                                        ref.invalidate(
-                                          laporanByTanggalProvider(a),
-                                        );
-                                      }
-
-                                      toast('Laporan dihapus');
-                                    } catch (e) {
-                                      toast('Gagal menghapus: $e');
-                                    }
-                                  }
-                                      : null ,
-                                );
-                              },
-                            );
-                          },
-                        ),
-
-                      const SizedBox(height: 12),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          icon: const Icon(Icons.add),
-                          label: const Text('Buat Laporan'),
-                          onPressed:
-                              (siswa == null ||
-                                  kelas == null ||
-                                  selectedDate == null)
-                              ? null
-                              : () async {
-                                  final changed = await Navigator.push<bool>(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => LaporanSiswaFormPage(
-                                        existing: siswa!,
-                                        existingKelas: kelas!,
-                                      ),
-                                    ),
-                                  );
-
-                                  if (changed == true) {
-                                    final a = _providerArgs();
-                                    if (a != null) {
-                                      ref.invalidate(
-                                        laporanByTanggalProvider(a),
-                                      );
-                                    }
-                                  }
-                                },
-                        ),
-                      ),
-                    ],
-                  ),
+                      : _buildLaporanRingkas(),
                 ),
               ),
             ],
