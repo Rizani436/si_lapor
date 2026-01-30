@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/siswa_pick.dart';
 import '../models/guru_pick.dart';
+import '../../../core/network/net_guard.dart';
 
 
 class GabungKelasService {
@@ -9,14 +10,20 @@ class GabungKelasService {
   GabungKelasService(this.sb);
 
   Future<Map<String, dynamic>?> getRuangByKode(String kodeKelas) async {
+    return networkGuard(
+      () async {
     return sb
         .from('ruangkelas')
         .select('id_ruang_kelas,kode_kelas')
         .eq('kode_kelas', kodeKelas)
-        .maybeSingle();
+        .maybeSingle();},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<List<SiswaPick>> getSiswaKosongByRuang(int idRuangKelas) async {
+    return networkGuard(
+      () async {
     final res = await sb
         .from('isiruangkelas')
         .select('id_data_siswa, datasiswa(nama_lengkap)')
@@ -29,17 +36,23 @@ class GabungKelasService {
         .map(SiswaPick.fromJoinJson)
         .toList();
 
-    return list;
+    return list;},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<Map<String, dynamic>?> cekGabung(int idRuangKelas, String idUser) async {
+    return networkGuard(
+      () async {
 
     return sb
         .from('isiruangkelas')
         .select('id_data_siswa, datasiswa(nama_lengkap)')
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_user_siswa', idUser)
-        .maybeSingle();
+        .maybeSingle();},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> gabungKelas({
@@ -47,15 +60,21 @@ class GabungKelasService {
     required int idDataSiswa,
     required String userId,
   }) async {
+    return networkGuard(
+      () async {
     await sb
         .from('isiruangkelas')
         .update({'id_user_siswa': userId})
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_data_siswa', idDataSiswa)
-        .filter('id_user_siswa', 'is', null);
+        .filter('id_user_siswa', 'is', null);},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
     Future<List<GuruPick>> getGuruKosongByRuangGuru(int idRuangKelas) async {
+    return networkGuard(
+      () async {
     final res = await sb
         .from('isiruangkelas')
         .select('id_data_guru, dataguru(nama_lengkap)')
@@ -68,16 +87,22 @@ class GabungKelasService {
         .map(GuruPick.fromJoinJson)
         .toList();
 
-    return list;
+    return list;},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<Map<String, dynamic>?> cekGabungGuru(int idRuangKelas, String idUser) async {
+    return networkGuard(
+      () async {
     return sb
         .from('isiruangkelas')
         .select('id_data_guru, dataguru(nama_lengkap)')
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_user_guru', idUser)
-        .maybeSingle();
+        .maybeSingle();},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> gabungKelasGuru({
@@ -85,11 +110,15 @@ class GabungKelasService {
     required int idDataGuru,
     required String userId,
   }) async {
+    return networkGuard(
+      () async {
     await sb
         .from('isiruangkelas')
         .update({'id_user_guru': userId})
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_data_guru', idDataGuru)
-        .filter('id_user_guru', 'is', null);
+        .filter('id_user_guru', 'is', null);},
+      'Gagal mengambil daftar siswa',
+    );
   }
 }

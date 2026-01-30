@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/notifikasi_model.dart';
+import '../../../core/network/net_guard.dart';
 
 class NotifikasiService {
   final SupabaseClient sb;
@@ -9,9 +10,13 @@ class NotifikasiService {
     final uid = sb.auth.currentUser?.id;
     if (uid == null || uid.isEmpty) throw Exception('User belum login');
     return uid;
+    
   }
 
   Future<List<NotifikasiModel>> getMine() async {
+    return networkGuard(
+      () async {
+    
     final uid = _requireUserId();
 
     final res = await sb
@@ -22,9 +27,14 @@ class NotifikasiService {
 
     final list = (res as List).cast<Map<String, dynamic>>();
     return list.map(NotifikasiModel.fromJson).toList();
+    },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<int> countUnread() async {
+    return networkGuard(
+      () async {
     final uid = _requireUserId();
 
     final res = await sb
@@ -34,9 +44,14 @@ class NotifikasiService {
         .eq('is_read', 0);
 
     return (res as List).length;
+    },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> markRead(int idNotifikasi) async {
+    return networkGuard(
+      () async {
     final uid = _requireUserId();
 
     await sb
@@ -44,9 +59,14 @@ class NotifikasiService {
         .update({'is_read': 1})
         .eq('id_notifikasi', idNotifikasi)
         .eq('id_user', uid);
+        },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> markAllRead() async {
+    return networkGuard(
+      () async {
     final uid = _requireUserId();
 
     await sb
@@ -54,9 +74,14 @@ class NotifikasiService {
         .update({'is_read': 1})
         .eq('id_user', uid)
         .eq('is_read', 0);
+        },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> deleteNotifikasi(int idNotifikasi) async {
+    return networkGuard(
+      () async {
     final uid = _requireUserId();
 
     await sb
@@ -64,6 +89,9 @@ class NotifikasiService {
         .delete()
         .eq('id_notifikasi', idNotifikasi)
         .eq('id_user', uid);
+        },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> createNotifikasi(
@@ -71,11 +99,16 @@ class NotifikasiService {
     required String title,
     required String body,
   }) async {
+    return networkGuard(
+      () async {
     await sb.from('notifikasi').insert({
       'id_user': uid,
       'title': title,
       'body': body,
       'is_read': 0,
     });
+    },
+      'Gagal mengambil daftar siswa',
+    );
   }
 }

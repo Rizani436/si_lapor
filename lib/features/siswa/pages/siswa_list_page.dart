@@ -12,6 +12,8 @@ import '../providers/siswa_import_provider.dart';
 import '../providers/siswa_provider.dart';
 import '../widgets/siswa_tile.dart';
 import 'siswa_form_page.dart';
+import '../../../core/utils/error_mapper.dart';
+
 
 class SiswaListPage extends ConsumerStatefulWidget {
   const SiswaListPage({super.key});
@@ -49,10 +51,11 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
         XFile(file.path),
       ], text: 'Template Import Siswa');
     } catch (e) {
+      final error = ErrorMapper.fromGeneric(e);
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Gagal download template: $e')));
+      ).showSnackBar(SnackBar(content: Text('Gagal download template: $error')));
     }
   }
 
@@ -104,11 +107,13 @@ class _SiswaListPageState extends ConsumerState<SiswaListPage> {
           ],
         ),
       );
-    } catch (e) {
+    }  catch (e) {
+      final error = ErrorMapper.fromGeneric(e);
+      
       if (!context.mounted) return;
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Import gagal: $e')));
+      ).showSnackBar(SnackBar(content: Text('Import gagal: $error')));
     }
   }
 

@@ -52,9 +52,7 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
   late final TextEditingController tSurahC;
   late final TextEditingController tAyatC;
 
-  late final TextEditingController prC;
   late final TextEditingController noteC;
-  
 
   bool get isEdit => widget.existingIdLaporan != null;
 
@@ -80,7 +78,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     tSurahC = TextEditingController();
     tAyatC = TextEditingController();
 
-    prC = TextEditingController();
     noteC = TextEditingController();
 
     final row = widget.existingLaporanRow;
@@ -141,7 +138,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         ayat: tAyatC,
       );
 
-      prC.text = (row['pr'] ?? '').toString();
       noteC.text = (row['note'] ?? '').toString();
       tahsinC.text = (row['tahsin'] ?? '').toString();
 
@@ -158,7 +154,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       if (hasJsa(zJuzC, zSurahC, zAyatC)) _openSections.add('ziyadah');
       if (hasJsa(mJuzC, mSurahC, mAyatC)) _openSections.add('murajaah');
       if (hasJsa(tJuzC, tSurahC, tAyatC)) _openSections.add('tasmi');
-      if (prC.text.trim().isNotEmpty) _openSections.add('pr');
       if (noteC.text.trim().isNotEmpty) _openSections.add('note');
       if (tahsinC.text.trim().isNotEmpty) _openSections.add('tahsin');
     }
@@ -176,7 +171,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     tJuzC.dispose();
     tSurahC.dispose();
     tAyatC.dispose();
-    prC.dispose();
 
     super.dispose();
   }
@@ -237,7 +231,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       ayat: mAyatC,
     ).trim();
     final tasmi = buildJsaText(juz: tJuzC, surah: tSurahC, ayat: tAyatC).trim();
-    final pr = prC.text.trim();
     final note = noteC.text.trim();
     final tahsin = tahsinC.text.trim();
 
@@ -249,9 +242,9 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       'murajaah': murajaah.isEmpty ? null : murajaah,
       'tahsin': tahsin.isEmpty ? null : tahsin,
       'tasmi': tasmi.isEmpty ? null : tasmi,
-      'pr': pr.isEmpty ? null : pr,
+      'pr': null,
       'note': note.isEmpty ? null : note,
-      'pelapor': 'Guru',
+      'pelapor': 'Orang Tua',
     };
   }
 
@@ -299,7 +292,8 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
         final uid = await ref
             .read(isiRuangKelasProvider)
-            .getIdUser(isiruangkelasId: idRuangKelas, idDataSiswa: idDataSiswa);
+            .getIdUserGuru(idRuangKelas: idRuangKelas);
+        
 
         if (uid != null) {
           await ref
@@ -307,7 +301,8 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
               .createNotifikasi(
                 uid,
                 title: 'Laporan Baru',
-                body: 'Guru telah menambahkan laporan baru untuk siswa.',
+                body:
+                    'Orang Tua telah menambahkan laporan baru untuk siswa ${siswa?.namaLengkap ?? ''}.',
               );
         }
       } else {
@@ -430,7 +425,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                             'Tahsin',
                             Icons.school_outlined,
                           ),
-                          _sectionButton('pr', 'PR', Icons.task_alt),
                           _sectionButton('note', 'Note', Icons.note_alt),
                         ],
                       ),
@@ -468,10 +462,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
                       if (_openSections.contains('tahsin')) ...[
                         oneField('Tahsin', tahsinC),
-                        const SizedBox(height: 12),
-                      ],
-                      if (_openSections.contains('pr')) ...[
-                        oneField('PR', prC),
                         const SizedBox(height: 12),
                       ],
                       if (_openSections.contains('note')) ...[

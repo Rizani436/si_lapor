@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class LaporanSiswaTile extends StatelessWidget {
   final Map<String, dynamic> laporan;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const LaporanSiswaTile({
     super.key,
     required this.laporan,
-    required this.onEdit,
-    required this.onDelete,
+     this.onEdit,
+     this.onDelete,
   });
   
 
@@ -39,6 +39,8 @@ class LaporanSiswaTile extends StatelessWidget {
     final tahsin = _visibleText(laporan['tahsin']);
     final tasmi = _visibleText(laporan['tasmi']);
     final pr = _visibleText(laporan['pr']);
+    final note = _visibleText(laporan['note']);
+    final pelapor = _visibleText(laporan['pelapor']);
 
     return Card(
       elevation: 0,
@@ -56,11 +58,13 @@ class LaporanSiswaTile extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Laporan • $tgl',
+                    'Laporan oleh $pelapor • $tgl',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
+                if (onEdit != null)
                 IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
+                if (onEdit != null)
                 IconButton(
                   icon: const Icon(Icons.delete_outline),
                   onPressed: onDelete,
@@ -75,6 +79,7 @@ class LaporanSiswaTile extends StatelessWidget {
             if (tahsin != null) _section('Tahsin', tahsin),
             if (tasmi != null) _section('Tasmi', tasmi, multiline: true),
             if (pr != null) Text('PR: $pr'),
+            if (note != null) _section('Note', note, multiline: true),
           ],
         ),
       ),

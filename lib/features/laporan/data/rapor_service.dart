@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 import 'package:path/path.dart' as p;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/network/net_guard.dart';
 
 class RaporService {
   final SupabaseClient _db;
@@ -14,6 +15,8 @@ class RaporService {
     required int idDataSiswa,
     required int idRuangKelas,
   }) async {
+    return networkGuard(
+      () async {
     final res = await _db
         .from(tableName)
         .select(urlColumn)
@@ -25,6 +28,9 @@ class RaporService {
 
     if (res == null) return null;
     return (res[urlColumn] as String?)?.trim();
+    },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> uploadRapor({
@@ -33,6 +39,8 @@ class RaporService {
     required Uint8List bytes,
     required String originalFilename,
   }) async {
+    return networkGuard(
+      () async {
     final ext = p.extension(originalFilename).toLowerCase();
 
     const allowed = {'.pdf', '.doc', '.docx'};
@@ -61,12 +69,17 @@ class RaporService {
       },
       onConflict: 'id_data_siswa,id_ruang_kelas', 
     );
+    },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> removeRapor({
     required int idDataSiswa,
     required int idRuangKelas,
   }) async {
+    return networkGuard(
+      () async {
     final row = await _db
         .from(tableName)
         .select(urlColumn)
@@ -91,6 +104,9 @@ class RaporService {
         .update({urlColumn: null})
         .eq('id_data_siswa', idDataSiswa)
         .eq('id_ruang_kelas', idRuangKelas);
+        },
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   String _contentTypeFromExt(String ext) {

@@ -5,10 +5,10 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository();
 });
 
-final authControllerProvider =
-    AsyncNotifierProvider<AuthController, void>(AuthController.new);
+final authRegisterControllerProvider =
+    AsyncNotifierProvider<AuthRegisterController, void>(AuthRegisterController.new);
 
-class AuthController extends AsyncNotifier<void> {
+class AuthRegisterController extends AsyncNotifier<void> {
   @override
   Future<void> build() async {}
 
@@ -32,15 +32,26 @@ class AuthController extends AsyncNotifier<void> {
       rethrow;
     }
   }
+}
+
+final authLoginControllerProvider =
+    AsyncNotifierProvider<AuthLoginController, void>(AuthLoginController.new);
+
+class AuthLoginController extends AsyncNotifier<void> {
+  @override
+  Future<void> build() async {}
 
   Future<void> login(String email, String password) async {
     state = const AsyncLoading();
     try {
-      await ref.read(authRepositoryProvider).login(email: email, password: password);
+      await ref.read(authRepositoryProvider).login(
+            email: email,
+            password: password,
+          );
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
-      rethrow; 
+      rethrow;
     }
   }
 }

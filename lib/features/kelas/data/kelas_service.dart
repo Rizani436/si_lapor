@@ -1,12 +1,15 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/utils/code_generate.dart';
 import '../models/kelas_model.dart';
+import '../../../core/network/net_guard.dart';
 
 class KelasService {
   final SupabaseClient _db;
   KelasService(this._db);
 
   Future<List<KelasModel>> getAll() async {
+    return networkGuard(
+      () async {
     final res = await _db
         .from('ruangkelas')
         .select('''
@@ -24,10 +27,14 @@ class KelasService {
         .order('kode_kelas', ascending: true);
 
     final list = (res as List).cast<Map<String, dynamic>>();
-    return list.map(KelasModel.fromJson).toList();
+    return list.map(KelasModel.fromJson).toList();},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<KelasModel> create(KelasModel payload) async {
+    return networkGuard(
+      () async {
     final resKelas = await _db
         .from('kelasalquran')
         .insert({
@@ -62,10 +69,14 @@ class KelasService {
       ''')
         .single();
 
-    return KelasModel.fromJson(res);
+    return KelasModel.fromJson(res);},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<KelasModel> update(int idRuangKelas, KelasModel payload) async {
+    return networkGuard(
+      () async {
     await _db
         .from('kelasalquran')
         .update({
@@ -95,10 +106,14 @@ class KelasService {
       ''')
         .single();
 
-    return KelasModel.fromJson(res);
+    return KelasModel.fromJson(res);},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<KelasModel> toggleAktif(KelasModel s) async {
+    return networkGuard(
+      () async {
     final newVal = s.ketAktif == 1 ? 0 : 1;
 
     final res = await _db
@@ -119,10 +134,14 @@ class KelasService {
       ''')
         .single();
 
-    return KelasModel.fromJson(res);
+    return KelasModel.fromJson(res);},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<void> delete(int idRuangKelas) async {
+    return networkGuard(
+      () async {
     final row = await _db
         .from('ruangkelas')
         .select('id_kelas')
@@ -133,10 +152,14 @@ class KelasService {
 
     await _db.from('ruangkelas').delete().eq('id_ruang_kelas', idRuangKelas);
 
-    await _db.from('kelasalquran').delete().eq('id_kelas', idKelas);
+    await _db.from('kelasalquran').delete().eq('id_kelas', idKelas);},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<List<KelasModel>> getAllMy(String id_user_guru) async {
+    return networkGuard(
+      () async {
     final cekRes = await _db
         .from('isiruangkelas')
         .select('id_ruang_kelas')
@@ -170,10 +193,14 @@ class KelasService {
         .order('kode_kelas', ascending: true);
 
     final list = (res as List).cast<Map<String, dynamic>>();
-    return list.map(KelasModel.fromJson).toList();
+    return list.map(KelasModel.fromJson).toList();},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<List<KelasModel>> getAllMySiswa(String id_user_siswa) async {
+    return networkGuard(
+      () async {
     final cekRes = await _db
         .from('isiruangkelas')
         .select('id_ruang_kelas')
@@ -207,10 +234,14 @@ class KelasService {
         .order('kode_kelas', ascending: true);
 
     final list = (res as List).cast<Map<String, dynamic>>();
-    return list.map(KelasModel.fromJson).toList();
+    return list.map(KelasModel.fromJson).toList();},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<KelasModel> createByGuru(KelasModel payload, String? id) async {
+    return networkGuard(
+      () async {
     final resKelas = await _db
         .from('kelasalquran')
         .insert({
@@ -252,10 +283,14 @@ class KelasService {
         .select()
         .single();
 
-    return temp;
+    return temp;},
+      'Gagal mengambil daftar siswa',
+    );
   }
 
   Future<int?> getMy(String id_user_siswa, int idKelas) async {
+    return networkGuard(
+      () async {
     final res = await _db
         .from('isiruangkelas')
         .select('id_data_siswa')
@@ -265,6 +300,8 @@ class KelasService {
 
     if (res == null) return null;
 
-    return res['id_data_siswa'] as int?;
+    return res['id_data_siswa'] as int?;},
+      'Gagal mengambil daftar siswa',
+    );
   }
 }

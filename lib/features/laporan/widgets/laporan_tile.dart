@@ -2,10 +2,15 @@ import 'package:flutter/material.dart';
 
 class LaporanTile extends StatelessWidget {
   final Map<String, dynamic> laporan;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
 
   const LaporanTile({
     super.key,
     required this.laporan,
+     this.onEdit,
+     this.onDelete,
   });
   
 
@@ -35,6 +40,8 @@ class LaporanTile extends StatelessWidget {
     final tahsin = _visibleText(laporan['tahsin']);
     final tasmi = _visibleText(laporan['tasmi']);
     final pr = _visibleText(laporan['pr']);
+    final note = _visibleText(laporan['note']);
+    final pelapor = _visibleText(laporan['pelapor']);
 
     return Card(
       elevation: 0,
@@ -52,9 +59,16 @@ class LaporanTile extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    'Laporan • $tgl',
+                    'Laporan oleh $pelapor • $tgl',
                     style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
+                ),
+                if (onEdit != null)
+                IconButton(icon: const Icon(Icons.edit), onPressed: onEdit),
+                if (onEdit != null)
+                IconButton(
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: onDelete,
                 ),
               ],
             ),
@@ -66,6 +80,7 @@ class LaporanTile extends StatelessWidget {
             if (tahsin != null) _section('Tahsin', tahsin),
             if (tasmi != null) _section('Tasmi', tasmi, multiline: true),
             if (pr != null) Text('PR: $pr'),
+            if (note != null) _section('Note', note, multiline: true),
           ],
         ),
       ),

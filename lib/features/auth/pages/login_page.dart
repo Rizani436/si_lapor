@@ -28,7 +28,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(authControllerProvider);
+    final state = ref.watch(authLoginControllerProvider);
     final isLoading = state.isLoading;
 
     return Scaffold(
@@ -103,10 +103,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           );
                           return;
                         }
+                        if (pass.length < 8) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Password minimal 8 karakter.'),
+                            ),
+                          );
+                          return;
+                        }
 
                         try {
                           await ref
-                              .read(authControllerProvider.notifier)
+                              .read(authLoginControllerProvider.notifier)
                               .login(email, pass);
                           try {
                             await ref

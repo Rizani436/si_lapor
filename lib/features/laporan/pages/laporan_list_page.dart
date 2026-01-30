@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-
+import 'package:si_lapor/core/UI/ui_helpers.dart';
 
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
 import '../providers/laporan_siswa_provider.dart';
 import '../widgets/laporan_tile.dart';
 import '../providers/rapor_provider.dart';
+import 'laporan_siswa_form_page(siswa).dart';
 
 class LaporanListPage extends ConsumerStatefulWidget {
   final SiswaModel? existing;
@@ -80,6 +81,27 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
   void _stopAutoRefresh() {
     _pollTimer?.cancel();
     _pollTimer = null;
+  }
+
+  Future<bool> _confirmDelete(BuildContext context) async {
+    final res = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus laporan?'),
+        content: const Text('Data laporan akan dihapus permanen.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    return res ?? false;
   }
 
   Future<void> _pickDate() async {
@@ -180,7 +202,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                             );
                           }
 
-                          final viewUrl = url.trim(); 
+                          final viewUrl = url.trim();
 
                           return ListTile(
                             contentPadding: EdgeInsets.zero,
@@ -280,11 +302,110 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                               physics: const NeverScrollableScrollPhysics(),
                               itemBuilder: (context, i) {
                                 final r = list[i];
-                                return LaporanTile(laporan: r);
+
+                                return LaporanTile(
+                                  laporan: r,
+
+                                  onEdit: r['pelapor'] == 'Orang Tua'
+                                      ? () async {
+                                          final changed =
+                                              await Navigator.push<bool>(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (_) =>
+                                                      LaporanSiswaFormPage(
+                                                        existing: siswa!,
+                                                        existingKelas: kelas!,
+                                                        existingIdLaporan:
+                                                            r['id_laporan']
+                                                                as int,
+                                                        existingLaporanRow: r,
+                                                      ),
+                                                ),
+                                              );
+
+                                          if (changed == true) {
+                                            final a = _providerArgs();
+                                            if (a != null) {
+                                              ref.invalidate(
+                                                laporanByTanggalProvider(a),
+                                              );
+                                            }
+                                          }
+                                        }
+                                      : null,
+
+                                  onDelete: r['pelapor'] == 'Orang Tua'
+                                      ? () async {
+                                          final id = r['id_laporan'] as int?;
+                                          if (id == null) return;
+
+                                          final ok = await _confirmDelete(
+                                            context,
+                                          );
+                                          if (!ok) return;
+
+                                          try {
+                                            await ref
+                                                .read(
+                                                  laporanActionProvider
+                                                      .notifier,
+                                                )
+                                                .deleteLaporan(id);
+
+                                            final a = _providerArgs();
+                                            if (a != null) {
+                                              ref.invalidate(
+                                                laporanByTanggalProvider(a),
+                                              );
+                                            }
+
+                                            toast('Laporan dihapus');
+                                          } catch (e) {
+                                            toast('Gagal menghapus: $e');
+                                          }
+                                        }
+                                      : null,
+                                );
                               },
                             );
                           },
                         ),
+
+                      const SizedBox(height: 12),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          icon: const Icon(Icons.add),
+                          label: const Text('Buat Laporan'),
+                          onPressed:
+                              (siswa == null ||
+                                  kelas == null ||
+                                  selectedDate == null)
+                              ? null
+                              : () async {
+                                  final changed = await Navigator.push<bool>(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => LaporanSiswaFormPage(
+                                        existing: siswa!,
+                                        existingKelas: kelas!,
+                                      ),
+                                    ),
+                                  );
+
+                                  if (changed == true) {
+                                    final a = _providerArgs();
+                                    if (a != null) {
+                                      ref.invalidate(
+                                        laporanByTanggalProvider(a),
+                                      );
+                                    }
+                                  }
+                                },
+                        ),
+                      ),
                     ],
                   ),
                 ),

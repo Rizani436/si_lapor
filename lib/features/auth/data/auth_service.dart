@@ -1,4 +1,5 @@
 import '../../../core/config/supabase_client.dart';
+import '../../../core/utils/error_mapper.dart';
 
 class AuthRepository {
   Future<void> register({
@@ -18,8 +19,9 @@ class AuthRepository {
         throw Exception('Registrasi gagal.');
       }
     } catch (e) {
-      throw Exception('Registrasi gagal: $e');
-    }
+    throw ErrorMapper.fromGeneric(e);
+  }
+
   }
 
   Future<void> login({required String email, required String password}) async {
@@ -33,7 +35,8 @@ class AuthRepository {
         throw Exception('Login gagal. Email atau password salah.');
       }
     } catch (e) {
-      throw Exception('Login gagal: $e');
-    }
+    throw ErrorMapper.fromGeneric(e);
+  }
+
   }
 }

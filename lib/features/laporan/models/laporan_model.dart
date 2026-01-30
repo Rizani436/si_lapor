@@ -7,7 +7,9 @@ class LaporanModel {
   final String murajaah;
   final String tahsin; 
   final String tasmi;  
-  final String pr;    
+  final String pr;
+  final String note;
+  final String pelapor;    
 
   LaporanModel({
     required this.idLaporan,
@@ -18,7 +20,9 @@ class LaporanModel {
     required this.murajaah,
     required this.tahsin,
     required this.tasmi,
-    required this.pr
+    required this.pr,
+    required this.note,
+    required this.pelapor
   });
 
   factory LaporanModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +36,8 @@ class LaporanModel {
       tahsin: (json['tahsin'] ?? '') as String,
       tasmi: (json['tasmi']  ?? '') as String,
       pr: (json['pr']  ?? '') as String,
+      note: (json['note']  ?? '') as String,
+      pelapor: (json['pelapor']  ?? '') as String,
       
     );
   }
@@ -47,7 +53,8 @@ class LaporanModel {
       'tahsin': tahsin,
       'tasmi': tasmi,
       'pr': pr,
-      
+      'note': note,
+      'pelapor': pelapor,
     };
   }
 
@@ -63,6 +70,8 @@ class LaporanModel {
     String? tahsin,
     String? tasmi,
     String? pr,
+    String? note,
+    String? pelapor,
   }) {
     return LaporanModel(
       idLaporan: idLaporan ?? this.idLaporan,
@@ -74,6 +83,8 @@ class LaporanModel {
       tahsin: tahsin ?? this.tahsin,
       tasmi: tasmi ?? this.tasmi,
       pr: pr ?? this.pr,
+      note: note ?? this.note,
+      pelapor: pelapor ?? this.pelapor,
     );
   }
 }

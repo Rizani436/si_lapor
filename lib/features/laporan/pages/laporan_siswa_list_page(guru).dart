@@ -401,7 +401,8 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
 
                                 return LaporanSiswaTile(
                                   laporan: r,
-                                  onEdit: () async {
+                                  onEdit: r['pelapor'] == 'Guru'
+                                      ? () async {
                                     final changed = await Navigator.push<bool>(
                                       context,
                                       MaterialPageRoute(
@@ -423,8 +424,10 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
                                         );
                                       }
                                     }
-                                  },
-                                  onDelete: () async {
+                                  }
+                                      : null,
+                                  onDelete: r['pelapor'] == 'Guru'
+                                      ? () async {
                                     final id = r['id_laporan'] as int?;
                                     if (id == null) return;
 
@@ -447,7 +450,8 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
                                     } catch (e) {
                                       toast('Gagal menghapus: $e');
                                     }
-                                  },
+                                  }
+                                      : null ,
                                 );
                               },
                             );

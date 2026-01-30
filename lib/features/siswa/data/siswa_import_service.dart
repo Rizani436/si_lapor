@@ -1,10 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../core/network/net_guard.dart';
 
 class SiswaImportService {
   final SupabaseClient _db;
   SiswaImportService(this._db);
 
   Future<void> upsertByNis(List<Map<String, dynamic>> rows) async {
+    return networkGuard(
+      () async {
     if (rows.isEmpty) return;
 
     const chunkSize = 200;
@@ -15,5 +18,8 @@ class SiswaImportService {
         onConflict: 'nis',
       );
     }
+    },
+      'Gagal mengambil daftar siswa',
+    );
   }
 }

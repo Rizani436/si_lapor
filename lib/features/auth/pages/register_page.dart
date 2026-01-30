@@ -32,34 +32,43 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
   void initState() {
     super.initState();
 
-    _authSub = ref.listenManual<AsyncValue<void>>(authControllerProvider, (prev, next) {
-      next.whenOrNull(
-        data: (_) {
-          if (_handled) return;
-          _handled = true;
-          if (!mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Register berhasil ✅ Silakan login.')),
-          );
-
-          ref.invalidate(authControllerProvider);
-
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+    _authSub = ref.listenManual<AsyncValue<void>>(
+      authRegisterControllerProvider,
+      (prev, next) {
+        next.whenOrNull(
+          data: (_) {
+            if (_handled) return;
+            _handled = true;
             if (!mounted) return;
-            Navigator.pushNamedAndRemoveUntil(context, Routes.login, (_) => false);
-          });
-        },
-        error: (e, _) {
-          _handled = false;
-          if (!mounted) return;
 
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(e.toString())),
-          );
-        },
-      );
-    });
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Register berhasil ✅ Silakan login.'),
+              ),
+            );
+
+            ref.invalidate(authRegisterControllerProvider);
+
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                Routes.login,
+                (_) => false,
+              );
+            });
+          },
+          error: (e, _) {
+            _handled = false;
+            if (!mounted) return;
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(e.toString())));
+          },
+        );
+      },
+    );
   }
 
   @override
@@ -81,7 +90,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(authControllerProvider);
+    final state = ref.watch(authRegisterControllerProvider);
     final isLoading = state.isLoading;
 
     return Scaffold(
@@ -135,8 +144,11 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 labelText: 'Password',
                 hintText: 'minimal 8 karakter',
                 suffixIcon: IconButton(
-                  icon: Icon(obscurePassword ? Icons.visibility_off : Icons.visibility),
-                  onPressed: () => setState(() => obscurePassword = !obscurePassword),
+                  icon: Icon(
+                    obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  ),
+                  onPressed: () =>
+                      setState(() => obscurePassword = !obscurePassword),
                 ),
               ),
             ),
@@ -148,8 +160,14 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
               decoration: InputDecoration(
                 labelText: 'Konfirmasi Password',
                 suffixIcon: IconButton(
-                  icon: Icon(obscureConfirmPassword ? Icons.visibility_off : Icons.visibility),
-                  onPressed: () => setState(() => obscureConfirmPassword = !obscureConfirmPassword),
+                  icon: Icon(
+                    obscureConfirmPassword
+                        ? Icons.visibility_off
+                        : Icons.visibility,
+                  ),
+                  onPressed: () => setState(
+                    () => obscureConfirmPassword = !obscureConfirmPassword,
+                  ),
                 ),
               ),
             ),
@@ -167,45 +185,60 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                         final p1 = passC.text;
                         final p2 = pass2C.text;
 
-                        if (nama.isEmpty || email.isEmpty || p1.isEmpty || p2.isEmpty) {
+                        if (nama.isEmpty ||
+                            email.isEmpty ||
+                            p1.isEmpty ||
+                            p2.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Semua field wajib diisi.')),
+                            const SnackBar(
+                              content: Text('Semua field wajib diisi.'),
+                            ),
                           );
                           return;
                         }
 
                         if (!_isValidEmail(email)) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Format email tidak valid.')),
+                            const SnackBar(
+                              content: Text('Format email tidak valid.'),
+                            ),
                           );
                           return;
                         }
 
                         if (phoneE164 == null || phoneE164!.trim().isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Nomor HP wajib diisi.')),
+                            const SnackBar(
+                              content: Text('Nomor HP wajib diisi.'),
+                            ),
                           );
                           return;
                         }
 
                         if (p1 != p2) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Password tidak sama.')),
+                            const SnackBar(
+                              content: Text('Password tidak sama.'),
+                            ),
                           );
                           return;
                         }
 
-                        if (p1.length < 8) {
+                        if (p1.length < 8 ) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Password minimal 8 karakter.')),
+                            const SnackBar(
+                              content: Text('Password minimal 8 karakter.'),
+                            ),
                           );
                           return;
                         }
 
                         final hpOnly = _digitsOnly(phoneE164!);
 
-                        _handled = false; 
-                        ref.read(authControllerProvider.notifier).register(
+                        _handled = false;
+                        ref
+                            .read(authRegisterControllerProvider.notifier)
+                            .register(
                               namaLengkap: nama,
                               noHp: hpOnly,
                               email: email,
