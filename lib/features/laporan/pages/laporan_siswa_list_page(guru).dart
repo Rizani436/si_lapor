@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
 import '../../../core/utils/ringkas_item.dart';
+import '../../../core/utils/text_helper.dart';
 
 import '../providers/laporan_siswa_provider.dart';
 import '../providers/rapor_provider.dart';
@@ -34,6 +35,11 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
   final _formKey = GlobalKey<FormState>();
 
   LaporanViewMode _viewMode = LaporanViewMode.harian;
+  final Map<String, bool> _showDetail = {
+    'Ziyadah': false,
+    'Murajaah': false,
+    'Tasmi': false,
+  };
 
   SiswaModel? siswa;
   KelasModel? kelas;
@@ -372,6 +378,41 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     );
   }
 
+  Widget _buildRingkasSection(String title, List<RingkasItem> items) {
+    final isOpen = _showDetail[title] ?? false;
+    if (items.isEmpty) {
+      return Text('$title: -');
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildRingkas(title, items),
+
+        const SizedBox(height: 6),
+
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _showDetail[title] = !isOpen;
+            });
+          },
+          child: Text(
+            isOpen ? 'Sembunyikan detail' : 'Lihat detail',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        if (isOpen) ...[
+          const SizedBox(height: 8),
+          _buildRingkasDetail(title, items),
+        ],
+      ],
+    );
+  }
+
   Widget _buildLaporanRingkas() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -434,14 +475,71 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildRingkasDetail('Ziyadah', data['ziyadah']!),
-            const SizedBox(height: 12),
-            _buildRingkasDetail('Murajaah', data['murajaah']!),
-            const SizedBox(height: 12),
-            _buildRingkasDetail('Tasmi', data['tasmi']!),
+            _buildRingkasSection('Ziyadah', data['ziyadah']!),
+            const SizedBox(height: 16),
+            _buildRingkasSection('Murajaah', data['murajaah']!),
+            const SizedBox(height: 16),
+            _buildRingkasSection('Tasmi', data['tasmi']!),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildRingkas(String title, List<RingkasItem> items) {
+    if (items.isEmpty) {
+      return Text('$title: -');
+    }
+
+    final Map<int, Map<String, List<RingkasItem>>> grouped = {};
+
+    for (final item in items) {
+      grouped
+          .putIfAbsent(item.juz, () => {})
+          .putIfAbsent(item.surah, () => [])
+          .add(item);
+    }
+
+    final lines = <Widget>[];
+
+    grouped.forEach((juz, surahMap) {
+      lines.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            'Juz $juz',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+
+      surahMap.forEach((surah, list) {
+        final minAyat = list
+            .map((e) => getAyatMin(e.ayat))
+            .reduce((a, b) => a < b ? a : b);
+
+        final maxAyat = list
+            .map((e) => getAyatMax(e.ayat))
+            .reduce((a, b) => a > b ? a : b);
+
+        final ayatText = minAyat == maxAyat ? '$minAyat' : '$minAyat-$maxAyat';
+
+        lines.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 4),
+            child: Text('• $surah ayat $ayatText'),
+          ),
+        );
+      });
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        ...lines,
+      ],
     );
   }
 

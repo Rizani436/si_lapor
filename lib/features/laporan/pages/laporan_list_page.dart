@@ -8,12 +8,15 @@ import 'package:si_lapor/core/UI/ui_helpers.dart';
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
 import '../../../core/utils/ringkas_item.dart';
+import '../../../core/utils/text_helper.dart';
 import '../providers/laporan_siswa_provider.dart';
 import '../providers/laporan_ringkas_provider.dart';
 import '../widgets/laporan_tile.dart';
 import '../providers/rapor_provider.dart';
 import 'laporan_siswa_form_page(siswa).dart';
+
 enum LaporanViewMode { harian, ringkas }
+
 class LaporanListPage extends ConsumerStatefulWidget {
   final SiswaModel? existing;
   final KelasModel? existingKelas;
@@ -26,6 +29,11 @@ class LaporanListPage extends ConsumerStatefulWidget {
 class _LaporanListPageState extends ConsumerState<LaporanListPage> {
   final _formKey = GlobalKey<FormState>();
   LaporanViewMode _viewMode = LaporanViewMode.harian;
+  final Map<String, bool> _showDetail = {
+    'Ziyadah': false,
+    'Murajaah': false,
+    'Tasmi': false,
+  };
 
   SiswaModel? siswa;
   KelasModel? kelas;
@@ -124,7 +132,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
     _startAutoRefresh();
   }
 
-    Future<void> _pickRangeDate() async {
+  Future<void> _pickRangeDate() async {
     final now = DateTime.now();
 
     final picked = await showDateRangePicker(
@@ -144,7 +152,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
     }
   }
 
-   Widget _buildLaporanHarian({
+  Widget _buildLaporanHarian({
     required bool canLoad,
     required AsyncValue<List<Map<String, dynamic>>>? laporanAsync,
   }) {
@@ -187,67 +195,57 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: (context, r) {
-                  return LaporanTile(laporan: list[r],
-                  onEdit: list[r]['pelapor'] == 'Orang Tua'
-                                      ? () async {
-                                          final changed =
-                                              await Navigator.push<bool>(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (_) =>
-                                                      LaporanSiswaFormPage(
-                                                        existing: siswa!,
-                                                        existingKelas: kelas!,
-                                                        existingIdLaporan:
-                                                            list[r]['id_laporan']
-                                                                as int,
-                                                        existingLaporanRow: list[r],
-                                                      ),
-                                                ),
-                                              );
+                  return LaporanTile(
+                    laporan: list[r],
+                    onEdit: list[r]['pelapor'] == 'Orang Tua'
+                        ? () async {
+                            final changed = await Navigator.push<bool>(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => LaporanSiswaFormPage(
+                                  existing: siswa!,
+                                  existingKelas: kelas!,
+                                  existingIdLaporan:
+                                      list[r]['id_laporan'] as int,
+                                  existingLaporanRow: list[r],
+                                ),
+                              ),
+                            );
 
-                                          if (changed == true) {
-                                            final a = _providerArgs();
-                                            if (a != null) {
-                                              ref.invalidate(
-                                                laporanByTanggalProvider(a),
-                                              );
-                                            }
-                                          }
-                                        }
-                                      : null,
+                            if (changed == true) {
+                              final a = _providerArgs();
+                              if (a != null) {
+                                ref.invalidate(laporanByTanggalProvider(a));
+                              }
+                            }
+                          }
+                        : null,
 
-                                  onDelete: list[r]['pelapor'] == 'Orang Tua'
-                                      ? () async {
-                                          final id = list[r]['id_laporan'] as int?;
-                                          if (id == null) return;
+                    onDelete: list[r]['pelapor'] == 'Orang Tua'
+                        ? () async {
+                            final id = list[r]['id_laporan'] as int?;
+                            if (id == null) return;
 
-                                          final ok = await _confirmDelete(
-                                            context,
-                                          );
-                                          if (!ok) return;
+                            final ok = await _confirmDelete(context);
+                            if (!ok) return;
 
-                                          try {
-                                            await ref
-                                                .read(
-                                                  laporanActionProvider
-                                                      .notifier,
-                                                )
-                                                .deleteLaporan(id);
+                            try {
+                              await ref
+                                  .read(laporanActionProvider.notifier)
+                                  .deleteLaporan(id);
 
-                                            final a = _providerArgs();
-                                            if (a != null) {
-                                              ref.invalidate(
-                                                laporanByTanggalProvider(a),
-                                              );
-                                            }
+                              final a = _providerArgs();
+                              if (a != null) {
+                                ref.invalidate(laporanByTanggalProvider(a));
+                              }
 
-                                            toast('Laporan dihapus');
-                                          } catch (e) {
-                                            toast('Gagal menghapus: $e');
-                                          }
-                                        }
-                                      : null,);
+                              toast('Laporan dihapus');
+                            } catch (e) {
+                              toast('Gagal menghapus: $e');
+                            }
+                          }
+                        : null,
+                  );
                 },
               );
             },
@@ -285,6 +283,41 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                   },
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildRingkasSection(String title, List<RingkasItem> items) {
+    final isOpen = _showDetail[title] ?? false;
+    if (items.isEmpty) {
+      return Text('$title: -');
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildRingkas(title, items),
+
+        const SizedBox(height: 6),
+
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              _showDetail[title] = !isOpen;
+            });
+          },
+          child: Text(
+            isOpen ? 'Sembunyikan detail' : 'Lihat detail',
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.primary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+
+        if (isOpen) ...[
+          const SizedBox(height: 8),
+          _buildRingkasDetail(title, items),
+        ],
       ],
     );
   }
@@ -351,14 +384,71 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildRingkasDetail('Ziyadah', data['ziyadah']!),
-            const SizedBox(height: 12),
-            _buildRingkasDetail('Murajaah', data['murajaah']!),
-            const SizedBox(height: 12),
-            _buildRingkasDetail('Tasmi', data['tasmi']!),
+            _buildRingkasSection('Ziyadah', data['ziyadah']!),
+            const SizedBox(height: 16),
+            _buildRingkasSection('Murajaah', data['murajaah']!),
+            const SizedBox(height: 16),
+            _buildRingkasSection('Tasmi', data['tasmi']!),
           ],
         );
       },
+    );
+  }
+
+  Widget _buildRingkas(String title, List<RingkasItem> items) {
+    if (items.isEmpty) {
+      return Text('$title: -');
+    }
+
+    final Map<int, Map<String, List<RingkasItem>>> grouped = {};
+
+    for (final item in items) {
+      grouped
+          .putIfAbsent(item.juz, () => {})
+          .putIfAbsent(item.surah, () => [])
+          .add(item);
+    }
+
+    final lines = <Widget>[];
+
+    grouped.forEach((juz, surahMap) {
+      lines.add(
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Text(
+            'Juz $juz',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+        ),
+      );
+
+      surahMap.forEach((surah, list) {
+        final minAyat = list
+            .map((e) => getAyatMin(e.ayat))
+            .reduce((a, b) => a < b ? a : b);
+
+        final maxAyat = list
+            .map((e) => getAyatMax(e.ayat))
+            .reduce((a, b) => a > b ? a : b);
+
+        final ayatText = minAyat == maxAyat ? '$minAyat' : '$minAyat-$maxAyat';
+
+        lines.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 4),
+            child: Text('• $surah ayat $ayatText'),
+          ),
+        );
+      });
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        ...lines,
+      ],
     );
   }
 
@@ -375,7 +465,9 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
         ...items.map(
           (e) => Padding(
             padding: const EdgeInsets.only(left: 12, bottom: 4),
-            child: Text('• Juz ${e.juz} — ${e.surah} ayat ${e.ayat} (${e.tanggal} | ${e.pelapor})'),
+            child: Text(
+              '• Juz ${e.juz} — ${e.surah} ayat ${e.ayat} (${e.tanggal} | ${e.pelapor})',
+            ),
           ),
         ),
       ],
@@ -537,8 +629,7 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                       : _buildLaporanRingkas(),
                 ),
               ),
-
-              ],
+            ],
           ),
         ),
       ),

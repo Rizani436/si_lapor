@@ -33,3 +33,16 @@ String buildJsaText({
 
   return lines.join('\n');
 }
+
+int getAyatMin(String ayat) {
+  final nums =
+      RegExp(r'\d+').allMatches(ayat).map((m) => int.parse(m.group(0)!));
+  return nums.isEmpty ? 0 : nums.reduce((a, b) => a < b ? a : b);
+}
+
+int getAyatMax(String ayat) {
+  final nums =
+      RegExp(r'\d+').allMatches(ayat).map((m) => int.parse(m.group(0)!));
+  return nums.isEmpty ? 0 : nums.reduce((a, b) => a > b ? a : b);
+}
+
