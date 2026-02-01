@@ -12,15 +12,19 @@ class IsiRuangKelasService {
       final res = await _db
           .from('isiruangkelas')
           .select('''
-          id,
-          id_ruang_kelas,
-          id_data_siswa,
-          id_user_siswa,
-          id_data_guru,
-          id_user_guru,
-          siswa:datasiswa(nama_lengkap),
-          guru:dataguru(nama_lengkap)
-        ''')
+      id,
+      id_ruang_kelas,
+      id_data_siswa,
+      id_user_siswa,
+      id_data_guru,
+      id_user_guru,
+
+      nama_siswa:datasiswa!left(nama_lengkap),
+      nama_guru:dataguru!left(nama_lengkap),
+
+      email_siswa:profiles!isiruangkelas_id_user_siswa_fkey(email),
+      email_guru:profiles!isiruangkelas_id_user_guru_fkey(email)
+    ''')
           .eq('id_ruang_kelas', idRuangKelas)
           .order('id', ascending: true);
 

@@ -460,7 +460,6 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
         const SizedBox(height: 6),
         ...items.map(
           (e) => Padding(

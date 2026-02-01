@@ -175,15 +175,13 @@ class EditIsiKelasPage extends ConsumerWidget {
                               return;
                             }
                             try {
-
-                                if (rowId == null) return;
-                                await ref
-                                    .read(isiRuangKelasProvider)
-                                    .updateDataByAdmin(
-                                      isiruangkelasId: rowId,
-                                      idDataGuru: picked.idDataGuru,
-                                    );
-                              
+                              if (rowId == null) return;
+                              await ref
+                                  .read(isiRuangKelasProvider)
+                                  .updateDataByAdmin(
+                                    isiruangkelasId: rowId,
+                                    idDataGuru: picked.idDataGuru,
+                                  );
 
                               ref.invalidate(
                                 isiRuangKelasNamaProvider(idRuangKelas),
@@ -331,7 +329,12 @@ class EditIsiKelasPage extends ConsumerWidget {
                   return Card(
                     child: ListTile(
                       leading: const Icon(Icons.person),
-                      title: Text(nama),
+                      title: Text(
+                        s.idUserSiswa != null && s.idUserSiswa!.trim().isNotEmpty
+                            ? '$nama  | ${s.emailUser}'
+                            : nama,
+                        style: const TextStyle(fontSize: 14),
+                      ),
 
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
