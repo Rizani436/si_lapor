@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
@@ -296,6 +297,16 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         
 
         if (uid != null) {
+           final response = Supabase.instance.client.functions.invoke(
+            'push-notification-v1',
+            body: {
+              'user_id': uid,
+              'title': 'Laporan Baru',
+              'body':
+                  'Orang Tua telah menambahkan laporan baru untuk siswa ${siswa?.namaLengkap ?? ''}.',
+              'data': {'type': 'INFO'},
+            },
+          );
           await ref
               .read(notifikasiServiceProvider)
               .createNotifikasi(

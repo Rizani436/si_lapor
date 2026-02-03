@@ -21,4 +21,21 @@ final laporanRingkasDetailProvider = FutureProvider.family<
   },
 );
 
+final laporan10HariTerakhir = FutureProvider.family<
+    Map<String, List<RingkasItem>>,
+    ({int idSiswa, int idKelas, String program})>(
+  (ref, q) async {
+    final service = ref.read(laporanServiceProvider);
+
+    final laporan = await service.getLaporan10(
+      idSiswa: q.idSiswa,
+      idKelas: q.idKelas,
+      program: q.program,
+      
+    );
+
+    return buildRingkasanDetail(laporan);
+  },
+);
+
 

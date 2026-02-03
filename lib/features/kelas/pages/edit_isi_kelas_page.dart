@@ -122,7 +122,13 @@ class EditIsiKelasPage extends ConsumerWidget {
 
                   return ListTile(
                     leading: const Icon(Icons.school),
-                    title: Text(g.namaGuru ?? '-'),
+                    // title: Text(g.namaGuru ?? '-'),
+                    title: Text(
+                        g.idUserGuru != null && g.idUserGuru!.trim().isNotEmpty
+                            ? '${g.namaGuru} | ${g.emailGuru}'
+                            : g.namaGuru ?? '-',
+                        style: const TextStyle(fontSize: 14),
+                      ),
 
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,

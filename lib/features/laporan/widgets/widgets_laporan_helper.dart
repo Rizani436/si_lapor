@@ -9,6 +9,9 @@ Widget jsaFields(
   required TextEditingController juz,
   required TextEditingController surah,
   required TextEditingController ayat,
+  String juzDone = '',
+  String surahDone = '',
+  String ayatDone = '',
 }) {
   int? juzVal = int.tryParse(juz.text.trim());
   String? surahKeyVal = surah.text.trim().isEmpty

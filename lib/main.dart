@@ -1,14 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'core/navigation/app_router.dart';
 import 'core/navigation/routes.dart';
 import 'core/config/supabase_client.dart';
 import 'core/navigation/messenger_key.dart';
 import 'core/navigation/navigator_key.dart';
+import 'features/device/fcm_service.dart';
+
+Future<void> setupFCMListener() async {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    debugPrint('NOTIF MASUK (FOREGROUND)');
+    debugPrint('Title: ${message.notification?.title}');
+    debugPrint('Body: ${message.notification?.body}');
+
+    messengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(
+          message.notification?.body ?? 'Notifikasi baru',
+        ),
+      ),
+    );
+  });
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
   await SupabaseConfig.init();
+
+  await FcmService.initPermission();
+
+  await setupFCMListener();
+
+  FcmService.listenTokenRefresh();
+
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -21,9 +51,7 @@ class MyApp extends StatelessWidget {
       navigatorKey: navigatorKey,
       scaffoldMessengerKey: messengerKey,
       debugShowCheckedModeBanner: false,
-
       initialRoute: Routes.gate,
-
       onGenerateRoute: AppRouter.onGenerateRoute,
       theme: ThemeData(
         useMaterial3: true,
@@ -42,7 +70,10 @@ class MyApp extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(12)),
             borderSide: BorderSide(width: 1),
           ),
-          contentPadding: EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: 14,
+            vertical: 14,
+          ),
         ),
       ),
     );

@@ -6,6 +6,7 @@ import '../session/session_provider.dart';
 import '../navigation/navigator_key.dart';
 import '../network/net_status_provider.dart';
 import '../../features/notifications/providers/notif_polling_provider.dart';
+import '../../features/device/fcm_service.dart';
 
 import '../../features/notifications/providers/notifikasi_provider.dart';
 
@@ -54,6 +55,7 @@ class AppScaffold extends ConsumerWidget {
 
   Future<void> _logout(WidgetRef ref) async {
     navigatorKey.currentState?.pop();
+    await FcmService().hapusToken();
     await ref.read(sessionProvider.notifier).logout();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       navigatorKey.currentState?.pushNamedAndRemoveUntil(

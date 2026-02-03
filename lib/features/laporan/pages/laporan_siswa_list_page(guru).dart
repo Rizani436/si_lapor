@@ -36,9 +36,12 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
 
   LaporanViewMode _viewMode = LaporanViewMode.harian;
   final Map<String, bool> _showDetail = {
-    'Ziyadah': false,
-    'Murajaah': false,
-    'Tasmi': false,
+    'Ziyadah Guru': false,
+    'Murajaah Guru': false,
+    'Tasmi Guru': false,
+    'Ziyadah Orang Tua': false,
+    'Murajaah Orang Tua': false,
+    'Tasmi Orang Tua': false,
   };
 
   SiswaModel? siswa;
@@ -378,22 +381,26 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     );
   }
 
-  Widget _buildRingkasSection(String title, List<RingkasItem> items) {
-    final isOpen = _showDetail[title] ?? false;
+  Widget _buildRingkasSection(
+    String title,
+    List<RingkasItem> items,
+    String pelapor,
+  ) {
+    final isOpen = _showDetail['$title $pelapor'] ?? false;
     if (items.isEmpty) {
       return Text('$title: -');
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildRingkas(title, items),
+        _buildRingkas(title, items, pelapor),
 
         const SizedBox(height: 6),
 
         GestureDetector(
           onTap: () {
             setState(() {
-              _showDetail[title] = !isOpen;
+              _showDetail['$title $pelapor'] = !isOpen;
             });
           },
           child: Text(
@@ -475,18 +482,42 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildRingkasSection('Ziyadah', data['ziyadah']!),
+            Text(
+              "Ringkasan Laporan dari Guru",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
-            _buildRingkasSection('Murajaah', data['murajaah']!),
+            _buildRingkasSection('Ziyadah', data['ziyadahGuru']!, 'Guru'),
             const SizedBox(height: 16),
-            _buildRingkasSection('Tasmi', data['tasmi']!),
+            _buildRingkasSection('Murajaah', data['murajaahGuru']!, 'Guru'),
+            const SizedBox(height: 16),
+            _buildRingkasSection('Tasmi', data['tasmiGuru']!, 'Guru'),
+            const Divider(height: 24),
+            Text(
+              "Ringkasan Laporan dari Orang Tua",
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            _buildRingkasSection(
+              'Ziyadah',
+              data['ziyadahOrangTua']!,
+              'Orang Tua',
+            ),
+            const SizedBox(height: 16),
+            _buildRingkasSection(
+              'Murajaah',
+              data['murajaahOrangTua']!,
+              'Orang Tua',
+            ),
+            const SizedBox(height: 16),
+            _buildRingkasSection('Tasmi', data['tasmiOrangTua']!, 'Orang Tua'),
           ],
         );
       },
     );
   }
 
-  Widget _buildRingkas(String title, List<RingkasItem> items) {
+  Widget _buildRingkas(String title, List<RingkasItem> items, String pelapor) {
     if (items.isEmpty) {
       return Text('$title: -');
     }
@@ -494,6 +525,7 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     final Map<int, Map<String, List<RingkasItem>>> grouped = {};
 
     for (final item in items) {
+      if (item.pelapor != pelapor) continue;
       grouped
           .putIfAbsent(item.juz, () => {})
           .putIfAbsent(item.surah, () => [])
@@ -551,7 +583,6 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-
         const SizedBox(height: 6),
         ...items.map(
           (e) => Padding(

@@ -48,16 +48,49 @@ class LaporanService {
     required DateTime end,
   }) async {
     return networkGuard(() async {
-    final res = await sb
-        .from('laporan')
-        .select()
-        .eq('id_data_siswa', idSiswa)
-        .eq('id_ruang_kelas', idKelas)
-        .gte('tanggal', start.toIso8601String())
-        .lte('tanggal', end.toIso8601String())
-        .order('tanggal');
+      final res = await sb
+          .from('laporan')
+          .select()
+          .eq('id_data_siswa', idSiswa)
+          .eq('id_ruang_kelas', idKelas)
+          .gte('tanggal', start.toIso8601String())
+          .lte('tanggal', end.toIso8601String())
+          .order('tanggal');
 
-    return List<Map<String, dynamic>>.from(res);
-     }, 'Gagal mengambil daftar siswa');
+      return List<Map<String, dynamic>>.from(res);
+    }, 'Gagal mengambil daftar siswa');
+  }
+
+  Future<List<Map<String, dynamic>>> getLaporan10({
+    required int idSiswa,
+    required int idKelas,
+    String program = '',
+  }) async {
+    return networkGuard(() async {
+      // if (program == 'Tahsin') {
+      //   final res = await sb
+      //     .from('laporan')
+      //     .select()
+      //     .eq('id_data_siswa', idSiswa)
+      //     .eq('id_ruang_kelas', idKelas)
+      //     .not(program, 'is', null)
+      //     .order('tanggal', ascending: false)
+      //     .limit(10);
+
+      //   return List<Map<String, dynamic>>.from(res);
+      // }
+      // else if
+      final res = await sb
+          .from('laporan')
+          .select()
+          .eq('id_data_siswa', idSiswa)
+          .eq('id_ruang_kelas', idKelas)
+          .eq('pelapor', 'Guru')
+          .not(program, 'is', null)
+          .order('created_at', ascending: false)
+          .limit(10);
+
+      return List<Map<String, dynamic>>.from(res);
+    }, 'Gagal mengambil daftar siswa');
   }
 }

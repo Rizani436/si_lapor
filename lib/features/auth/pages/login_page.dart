@@ -6,6 +6,7 @@ import '../providers/auth_provider.dart';
 import 'change_password_page.dart';
 import '../../../core/session/session_provider.dart';
 import '../../../core/navigation/routes.dart';
+import '../../../features/device/fcm_service.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
   const LoginPage({super.key});
@@ -120,6 +121,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                             await ref
                                 .read(sessionProvider.notifier)
                                 .refreshProfile();
+                            await FcmService.registerDevice();
                           } catch (_) {}
 
                           if (!mounted) return;
