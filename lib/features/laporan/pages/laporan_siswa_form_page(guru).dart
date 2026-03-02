@@ -6,8 +6,10 @@ import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
 import '../providers/laporan_siswa_provider.dart';
 import '../widgets/widgets_laporan_helper.dart';
+import '../../../core/utils/ringkas_item.dart';
 import '../../../core/utils/text_helper.dart';
 import '../../notifications/providers/notifikasi_provider.dart';
+import '../providers/laporan_ringkas_provider.dart';
 import '../../kelas/providers/isi_ruang_kelas_provider.dart';
 
 class LaporanSiswaFormPage extends ConsumerStatefulWidget {
@@ -317,7 +319,8 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
               .createNotifikasi(
                 uid,
                 title: 'Laporan Baru',
-                body: 'Guru telah menambahkan laporan baru untuk  ${siswa?.namaLengkap ?? 'Siswa'}.',
+                body:
+                    'Guru telah menambahkan laporan baru untuk  ${siswa?.namaLengkap ?? 'Siswa'}.',
               );
         }
       } else {
@@ -345,11 +348,80 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     }
   }
 
+  List<Map<String, dynamic>> ringkasAyat(List<RingkasItem> items) {
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+
+    for (final item in items) {
+      final key = '${item.juz}-${item.surah}';
+
+      grouped.putIfAbsent(key, () => []).add({
+        'juz': item.juz,
+        'surah': item.surah,
+        'minAyat': getAyatMin(item.ayat),
+        'maxAyat': getAyatMax(item.ayat),
+      });
+    }
+
+    final List<Map<String, dynamic>> result = [];
+
+    for (final ranges in grouped.values) {
+      ranges.sort(
+        (a, b) => (a['minAyat'] as int).compareTo(b['minAyat'] as int),
+      );
+
+      var current = Map<String, dynamic>.from(ranges.first);
+
+      for (int i = 1; i < ranges.length; i++) {
+        final next = ranges[i];
+
+        if (next['minAyat'] <= current['maxAyat'] + 1) {
+          current['maxAyat'] = (next['maxAyat'] > current['maxAyat'])
+              ? next['maxAyat']
+              : current['maxAyat'];
+        } else {
+          result.add(current);
+          current = Map<String, dynamic>.from(next);
+        }
+      }
+
+      result.add(current);
+    }
+
+    return result;
+  }
+
   @override
   Widget build(BuildContext context) {
     final actionState = ref.watch(laporanActionProvider);
     final saving = actionState.isLoading;
 
+    final tasmiLama = ref.watch(
+      lastlaporan((
+        idSiswa: siswa!.idDataSiswa!.toString(),
+        idKelas: kelas!.idRuangKelas!.toString(),
+        program: 'tasmi',
+        pelapor: 'Guru',
+      )),
+    );
+    final ziyadahLama = ref.watch(
+      lastlaporan((
+        idSiswa: siswa!.idDataSiswa!.toString(),
+        idKelas: kelas!.idRuangKelas!.toString(),
+        program: 'ziyadah',
+        pelapor: 'Guru',
+      )),
+    );
+    final murajaahLama = ref.watch(
+      lastlaporan((
+        idSiswa: siswa!.idDataSiswa!.toString(),
+        idKelas: kelas!.idRuangKelas!.toString(),
+        program: 'murajaah',
+        pelapor: 'Guru',
+      )),
+    );
+    final dataTasmi = extractData(tasmiLama, 'tasmi');
+    final dataZiyadah = extractData(ziyadahLama, 'ziyadah');
+    final dataMurajaah = extractData(murajaahLama, 'murajaah');
     return Scaffold(
       appBar: AppBar(title: Text(isEdit ? 'Edit Laporan' : 'Buat Laporan')),
       body: Padding(
@@ -448,6 +520,13 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                       const SizedBox(height: 12),
 
                       if (_openSections.contains('tasmi')) ...[
+                        Text(
+                          'Tasmi Terakhir: ${dataTasmi != null ? 'Juz ${dataTasmi['juz']} | Surah ${dataTasmi['surah']} : ${dataTasmi['ayat']} pada tanggal ${dataTasmi['tanggal']}' : 'Belum ada laporan tasmi sebelumnya'}',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                         jsaFields(
                           'Tasmi',
                           juz: tJuzC,
@@ -457,6 +536,13 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                         const SizedBox(height: 12),
                       ],
                       if (_openSections.contains('ziyadah')) ...[
+                        Text(
+                          'Ziyadah Terakhir: ${dataZiyadah != null ? 'Juz ${dataZiyadah['juz']} | Surah ${dataZiyadah['surah']} : ${dataZiyadah['ayat']} pada tanggal ${dataZiyadah['tanggal']}' : 'Belum ada laporan ziyadah sebelumnya'}',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                         jsaFields(
                           'Ziyadah',
                           juz: zJuzC,
@@ -467,6 +553,13 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                       ],
 
                       if (_openSections.contains('murajaah')) ...[
+                        Text(
+                          'Murajaah Terakhir: ${dataMurajaah != null ? 'Juz ${dataMurajaah['juz']} | Surah ${dataMurajaah['surah']} : ${dataMurajaah['ayat']} pada tanggal ${dataMurajaah['tanggal']}' : 'Belum ada laporan murajaah sebelumnya'}',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                         jsaFields(
                           'Murajaah',
                           juz: mJuzC,

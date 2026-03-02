@@ -29,7 +29,7 @@ class RaporService {
     if (res == null) return null;
     return (res[urlColumn] as String?)?.trim();
     },
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil rapor',
     );
   }
 
@@ -70,7 +70,7 @@ class RaporService {
       onConflict: 'id_data_siswa,id_ruang_kelas', 
     );
     },
-      'Gagal mengambil daftar siswa',
+      'Gagal mengunggah rapor',
     );
   }
 
@@ -105,7 +105,7 @@ class RaporService {
         .eq('id_data_siswa', idDataSiswa)
         .eq('id_ruang_kelas', idRuangKelas);
         },
-      'Gagal mengambil daftar siswa',
+      'Gagal menghapus rapor',
     );
   }
 

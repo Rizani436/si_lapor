@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/siswa_model.dart';
 import '../providers/siswa_provider.dart';
+import 'package:postgrest/postgrest.dart';
 
 class SiswaFormPage extends ConsumerStatefulWidget {
   final SiswaModel? existing;
@@ -163,7 +164,8 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                   onPressed: saving
                       ? null
                       : () async {
-                          if (!(_formKey.currentState?.validate() ?? false)) return;
+                          if (!(_formKey.currentState?.validate() ?? false))
+                            return;
 
                           setState(() => saving = true);
                           try {
@@ -178,10 +180,15 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                               ketAktif: aktif ? 1 : 0,
                             );
 
-                            final notifier = ref.read(siswaListProvider.notifier);
+                            final notifier = ref.read(
+                              siswaListProvider.notifier,
+                            );
 
                             if (isEdit) {
-                              await notifier.edit(widget.existing!.idDataSiswa, payload);
+                              await notifier.edit(
+                                widget.existing!.idDataSiswa,
+                                payload,
+                              );
                             } else {
                               await notifier.add(payload);
                             }
@@ -189,9 +196,19 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                             if (mounted) Navigator.pop(context, true);
                           } catch (e) {
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Gagal: $e')),
-                            );
+
+                            String message = 'Terjadi kesalahan';
+
+                            if (e.toString().contains('23505') ||
+                                e.toString().contains('duplicate key')) {
+                              message = 'NIS sudah digunakan';
+                            } else {
+                              message = e.toString();
+                            }
+
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(message)));
                           } finally {
                             if (mounted) setState(() => saving = false);
                           }

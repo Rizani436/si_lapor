@@ -16,7 +16,7 @@ class GuruService {
 
     final list = (res as List).cast<Map<String, dynamic>>();
     return list.map(GuruModel.fromJson).toList();},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil daftar guru',
     );
   }
 
@@ -30,7 +30,7 @@ class GuruService {
         .single();
 
     return GuruModel.fromJson(res);},
-      'Gagal mengambil daftar siswa',
+      'Gagal membuat guru',
     );
   }
 
@@ -45,7 +45,7 @@ class GuruService {
         .single();
 
     return GuruModel.fromJson(res);},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengupdate guru',
     );
   }
 
@@ -53,7 +53,7 @@ class GuruService {
     return networkGuard(
       () async {
     await _db.from('dataguru').delete().eq('id_data_guru', idDataGuru);},
-      'Gagal mengambil daftar siswa',
+      'Gagal menghapus guru',
     );
   }
 
@@ -70,7 +70,7 @@ class GuruService {
         .single();
 
     return GuruModel.fromJson(res);},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengubah status aktif guru',
     );
   }
 }

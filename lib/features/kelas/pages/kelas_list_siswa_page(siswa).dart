@@ -280,7 +280,8 @@ class _KelasListSiswaPageState extends ConsumerState<KelasListSiswaPage> {
                         if (s.idKelas == null) return;
                         int? idDataSiswa = await ref
                             .read(kelasSiswaListProvider.notifier)
-                            .getMy(s.idKelas!) ;
+                            .getMy(s.idRuangKelas!) ;
+                        print('idDataSiswa: $idDataSiswa idkelas: ${s.idKelas}');
                         final siswa = await ref
                             .read(siswaListProvider.notifier)
                             .getSiswa(idDataSiswa!);

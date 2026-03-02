@@ -69,7 +69,7 @@ class _GuruFormPageState extends ConsumerState<GuruFormPage> {
               TextFormField(
                 controller: nipC,
                 decoration: const InputDecoration(
-                  labelText: 'NIS',
+                  labelText: 'NIP/NIK',
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) =>
@@ -116,7 +116,8 @@ class _GuruFormPageState extends ConsumerState<GuruFormPage> {
                   onPressed: saving
                       ? null
                       : () async {
-                          if (!(_formKey.currentState?.validate() ?? false)) return;
+                          if (!(_formKey.currentState?.validate() ?? false))
+                            return;
 
                           setState(() => saving = true);
                           try {
@@ -129,10 +130,15 @@ class _GuruFormPageState extends ConsumerState<GuruFormPage> {
                               ketAktif: aktif ? 1 : 0,
                             );
 
-                            final notifier = ref.read(guruListProvider.notifier);
+                            final notifier = ref.read(
+                              guruListProvider.notifier,
+                            );
 
                             if (isEdit) {
-                              await notifier.edit(widget.existing!.idDataGuru, payload);
+                              await notifier.edit(
+                                widget.existing!.idDataGuru,
+                                payload,
+                              );
                             } else {
                               await notifier.add(payload);
                             }
@@ -140,9 +146,19 @@ class _GuruFormPageState extends ConsumerState<GuruFormPage> {
                             if (mounted) Navigator.pop(context, true);
                           } catch (e) {
                             if (!mounted) return;
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Gagal: $e')),
-                            );
+
+                            String message = 'Terjadi kesalahan';
+
+                            if (e.toString().contains('23505') ||
+                                e.toString().contains('duplicate key')) {
+                              message = 'NIP sudah digunakan';
+                            } else {
+                              message = e.toString();
+                            }
+
+                            ScaffoldMessenger.of(
+                              context,
+                            ).showSnackBar(SnackBar(content: Text(message)));
                           } finally {
                             if (mounted) setState(() => saving = false);
                           }

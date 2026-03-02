@@ -44,7 +44,7 @@ class LaporanKepsekService {
         .map((e) => Map<String, dynamic>.from(e as Map))
         .toList();
         },
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil daftar laporan',
     );
   }
 

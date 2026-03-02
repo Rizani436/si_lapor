@@ -10,21 +10,23 @@ final laporanServiceProvider = Provider<LaporanService>((ref) {
   return LaporanService(ref.read(supabaseProvider));
 });
 
-final laporanByTanggalProvider = FutureProvider.family<
-    List<Map<String, dynamic>>,
-    ({int idRuangKelas, int idDataSiswa, String tanggal})>((ref, q) async {
-  final service = ref.read(laporanServiceProvider);
-  return service.getByTanggal(
-    idRuangKelas: q.idRuangKelas,
-    idDataSiswa: q.idDataSiswa,
-    tanggal: q.tanggal,
-  );
-});
+final laporanByTanggalProvider =
+    FutureProvider.family<
+      List<Map<String, dynamic>>,
+      ({int idRuangKelas, int idDataSiswa, String tanggal})
+    >((ref, q) async {
+      final service = ref.read(laporanServiceProvider);
+      return service.getByTanggal(
+        idRuangKelas: q.idRuangKelas,
+        idDataSiswa: q.idDataSiswa,
+        tanggal: q.tanggal,
+      );
+    });
 
 final laporanActionProvider =
     AsyncNotifierProvider<LaporanActionNotifier, void>(
-  LaporanActionNotifier.new,
-);
+      LaporanActionNotifier.new,
+    );
 
 class LaporanActionNotifier extends AsyncNotifier<void> {
   @override
@@ -34,6 +36,18 @@ class LaporanActionNotifier extends AsyncNotifier<void> {
     state = const AsyncLoading();
     try {
       await ref.read(laporanServiceProvider).create(payload);
+      for (final program in ['tasmi', 'ziyadah', 'murajaah']) {
+        if (payload[program] != null) {
+          ref.invalidate(
+            lastlaporan((
+              idSiswa: payload['id_data_siswa'].toString(),
+              idKelas: payload['id_ruang_kelas'].toString(),
+              program: program,
+              pelapor: payload['pelapor'],
+            )),
+          );
+        }
+      }
       state = const AsyncData(null);
     } catch (e, st) {
       state = AsyncError(e, st);
@@ -41,7 +55,10 @@ class LaporanActionNotifier extends AsyncNotifier<void> {
     }
   }
 
-  Future<void> updateLaporan(int idLaporan, Map<String, dynamic> payload) async {
+  Future<void> updateLaporan(
+    int idLaporan,
+    Map<String, dynamic> payload,
+  ) async {
     state = const AsyncLoading();
     try {
       await ref.read(laporanServiceProvider).update(idLaporan, payload);
@@ -63,3 +80,20 @@ class LaporanActionNotifier extends AsyncNotifier<void> {
     }
   }
 }
+
+final lastlaporan =
+    FutureProvider.family<
+      Map<String, dynamic>?,
+      ({String idSiswa, String idKelas, String program, String pelapor})
+    >((ref, params) async {
+      final service = ref.read(laporanServiceProvider);
+
+      final response = await service.getLastLaporan(
+        idSiswa: int.parse(params.idSiswa),
+        idRuangKelas: int.parse(params.idKelas),
+        program: params.program,
+        pelapor: params.pelapor,
+      );
+
+      return response;
+    });

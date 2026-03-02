@@ -17,7 +17,7 @@ class AkunService {
           .order('created_at', ascending: false);
 
       return (res as List).map((e) => AkunModel.fromMap(e)).toList();
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal mengambil daftar akun');
   }
 
   Future<AkunModel> create({
@@ -43,7 +43,7 @@ class AkunService {
           .single();
 
       return AkunModel.fromMap(res);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal membuat akun');
   }
 
   Future<AkunModel> update(
@@ -72,13 +72,13 @@ class AkunService {
           .single();
 
       return AkunModel.fromMap(res);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal mengupdate akun');
   }
 
   Future<void> delete(String userId) async {
     return networkGuard(() async {
       await supabase.functions.invoke('delete-user', body: {'user_id': userId});
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal menghapus akun');
   }
 
   Future<AkunModel> toggleAktif(AkunModel a) async {
@@ -93,6 +93,6 @@ class AkunService {
           .single();
 
       return AkunModel.fromMap(res);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal mengubah status aktif akun');
   }
 }

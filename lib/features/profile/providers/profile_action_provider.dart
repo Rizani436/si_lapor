@@ -3,6 +3,7 @@ import 'profile_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../core/session/session_provider.dart';
 import '../../../core/config/supabase_client.dart';
+import '../../../core/UI/ui_helpers.dart';
 
 
 final profileActionProvider =
@@ -15,15 +16,12 @@ class ProfileActionNotifier extends AsyncNotifier<void> {
   Future<void> build() async {}
 
   Future<void> updateEmail(WidgetRef ref, String email) async {
-    state = const AsyncLoading();
-    try {
-      await ref.read(myProfileProvider.notifier).updateEmail(email);
-      state = const AsyncData(null);
-    } catch (e, st) {
-      state = AsyncError(e, st);
-      rethrow;
-    }
+  try {
+    await ref.read(myProfileProvider.notifier).updateEmail(email);
+  } catch (e) {
+    rethrow;
   }
+}
 
   Future<bool> changePasswordWithVerify({
     required String oldPassword,

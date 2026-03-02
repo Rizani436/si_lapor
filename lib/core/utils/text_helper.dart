@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 String safeText(dynamic v) {
   if (v == null) return '-';
   final s = v.toString().trim();
@@ -35,14 +37,68 @@ String buildJsaText({
 }
 
 int getAyatMin(String ayat) {
-  final nums =
-      RegExp(r'\d+').allMatches(ayat).map((m) => int.parse(m.group(0)!));
+  final nums = RegExp(
+    r'\d+',
+  ).allMatches(ayat).map((m) => int.parse(m.group(0)!));
   return nums.isEmpty ? 0 : nums.reduce((a, b) => a < b ? a : b);
 }
 
 int getAyatMax(String ayat) {
-  final nums =
-      RegExp(r'\d+').allMatches(ayat).map((m) => int.parse(m.group(0)!));
+  final nums = RegExp(
+    r'\d+',
+  ).allMatches(ayat).map((m) => int.parse(m.group(0)!));
   return nums.isEmpty ? 0 : nums.reduce((a, b) => a > b ? a : b);
 }
 
+Map<String, dynamic>? extractData(
+  AsyncValue<Map<String, dynamic>?> asyncData,
+  String program,
+) {
+  final laporan = asyncData.asData?.value;
+  if (laporan == null) return null;
+
+  final String? programText = laporan['$program'];
+  if (programText == null) return null;
+
+  final lines = programText.split('\n');
+
+  String juz = '';
+  String surah = '';
+  String ayat = '';
+
+  for (var line in lines) {
+    if (line.startsWith('Juz:')) {
+      juz = line.replaceFirst('Juz:', '').trim();
+    } else if (line.startsWith('Surah:')) {
+      surah = line.replaceFirst('Surah:', '').trim();
+    } else if (line.startsWith('Ayat:')) {
+      ayat = line.replaceFirst('Ayat:', '').trim();
+    }
+  }
+
+
+
+  AsyncValue<Map<String, dynamic>?> asyncDataNew = AsyncValue.data({
+    'juz': juz,
+    'surah': surah,
+    'ayat': ayat,
+    'tanggal': laporan['tanggal'],
+  }); 
+
+
+
+  return asyncDataNew.when(
+    data: (value) {
+      if (value == null) return null;
+      return value;
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
+}
+
+Map<String, dynamic>? safeFirst(AsyncValue<List<Map<String, dynamic>>> data) {
+  final list = data.asData?.value;
+  if (list == null || list.isEmpty) return null;
+  return list.first;
+}

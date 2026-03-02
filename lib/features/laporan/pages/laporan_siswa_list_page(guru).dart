@@ -469,7 +469,7 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     final ringkasAsync = ref.watch(
       laporanRingkasDetailProvider((
         idSiswa: siswa!.idDataSiswa!,
-        idKelas: kelas!.idKelas!,
+        idKelas: kelas!.idRuangKelas  !,
         start: startDate!,
         end: endDate!,
       )),

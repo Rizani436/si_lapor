@@ -2,8 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/notifikasi_provider.dart';
 
-class NotificationsPage extends ConsumerWidget {
+class NotificationsPage extends ConsumerStatefulWidget {
   const NotificationsPage({super.key});
+
+  @override
+  ConsumerState<NotificationsPage> createState() => _NotificationsPageState();
+}
+
+class _NotificationsPageState extends ConsumerState<NotificationsPage> {
+  final Set<int> _selectedIds = {};
+  bool get _isSelectionMode => _selectedIds.isNotEmpty;
 
   String _formatTime(DateTime dt) {
     final now = DateTime.now();
@@ -36,30 +44,115 @@ class NotificationsPage extends ConsumerWidget {
     return res == true;
   }
 
+  void _toggleSelection(int id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _selectAll(List items) {
+    setState(() {
+      if (_selectedIds.length == items.length) {
+        _selectedIds.clear();
+      } else {
+        _selectedIds.clear();
+        for (var item in items) {
+          _selectedIds.add(item.idNotifikasi);
+        }
+      }
+    });
+  }
+
+  Future<void> _deleteSelected() async {
+    final ok = await _confirmDelete(context);
+    if (!ok) return;
+
+    final svc = ref.read(notifikasiServiceProvider);
+
+    for (final id in _selectedIds) {
+      await svc.deleteNotifikasi(id);
+    }
+
+    ref.invalidate(notifikasiListProvider);
+    ref.invalidate(notifikasiUnreadCountProvider);
+
+    setState(() {
+      _selectedIds.clear();
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Notifikasi terpilih dihapus')),
+      );
+    }
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final asyncList = ref.watch(notifikasiListProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifikasi'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh',
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(notifikasiListProvider),
-          ),
-          IconButton(
-            tooltip: 'Tandai semua dibaca',
-            icon: const Icon(Icons.done_all),
-            onPressed: () async {
-              final svc = ref.read(notifikasiServiceProvider);
-              await svc.markAllRead();
-              ref.invalidate(notifikasiListProvider);
-              ref.invalidate(notifikasiUnreadCountProvider);
-            },
-          ),
-        ],
+        leading: _isSelectionMode
+            ? IconButton(
+                icon: const Icon(Icons.close),
+                onPressed: () {
+                  setState(() => _selectedIds.clear());
+                },
+              )
+            : null,
+        title: Text(
+          _isSelectionMode ? '${_selectedIds.length} dipilih' : 'Notifikasi',
+        ),
+        actions: _isSelectionMode
+            ? [
+                Builder(
+                  builder: (context) {
+                    final asyncList = ref.watch(notifikasiListProvider);
+                    return asyncList.when(
+                      data: (items) => IconButton(
+                        tooltip: _selectedIds.length == items.length
+                            ? 'Batal pilih semua'
+                            : 'Pilih semua',
+                        icon: Icon(
+                          _selectedIds.length == items.length
+                              ? Icons.select_all
+                              : Icons.checklist,
+                        ),
+                        onPressed: () => _selectAll(items),
+                      ),
+                      loading: () => const SizedBox(),
+                      error: (_, __) => const SizedBox(),
+                    );
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Hapus terpilih',
+                  icon: const Icon(Icons.delete),
+                  onPressed: _deleteSelected,
+                ),
+              ]
+            : [
+                IconButton(
+                  tooltip: 'Refresh',
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => ref.invalidate(notifikasiListProvider),
+                ),
+                IconButton(
+                  tooltip: 'Tandai semua dibaca',
+                  icon: const Icon(Icons.done_all),
+                  onPressed: () async {
+                    final svc = ref.read(notifikasiServiceProvider);
+                    await svc.markAllRead();
+                    ref.invalidate(notifikasiListProvider);
+                    ref.invalidate(notifikasiUnreadCountProvider);
+                  },
+                ),
+              ],
       ),
       body: asyncList.when(
         data: (items) {
@@ -74,6 +167,7 @@ class NotificationsPage extends ConsumerWidget {
             itemBuilder: (context, i) {
               final n = items[i];
               final isRead = n.isRead == 1;
+              final isSelected = _selectedIds.contains(n.idNotifikasi);
 
               return Dismissible(
                 key: ValueKey('notif-${n.idNotifikasi}'),
@@ -98,6 +192,7 @@ class NotificationsPage extends ConsumerWidget {
                 onDismissed: (_) async {
                   final svc = ref.read(notifikasiServiceProvider);
                   await svc.deleteNotifikasi(n.idNotifikasi);
+
                   ref.invalidate(notifikasiListProvider);
                   ref.invalidate(notifikasiUnreadCountProvider);
 
@@ -109,10 +204,19 @@ class NotificationsPage extends ConsumerWidget {
                 },
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
+                  onLongPress: () {
+                    _toggleSelection(n.idNotifikasi);
+                  },
                   onTap: () async {
+                    if (_isSelectionMode) {
+                      _toggleSelection(n.idNotifikasi);
+                      return;
+                    }
+
                     if (!isRead) {
                       final svc = ref.read(notifikasiServiceProvider);
                       await svc.markRead(n.idNotifikasi);
+
                       ref.invalidate(notifikasiListProvider);
                       ref.invalidate(notifikasiUnreadCountProvider);
                     }
@@ -142,7 +246,10 @@ class NotificationsPage extends ConsumerWidget {
                               const SizedBox(height: 12),
                               Text(
                                 n.body,
-                                style: const TextStyle(fontSize: 14, height: 1.4),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  height: 1.4,
+                                ),
                               ),
                               const SizedBox(height: 16),
                               Row(
@@ -150,21 +257,32 @@ class NotificationsPage extends ConsumerWidget {
                                   Expanded(
                                     child: OutlinedButton.icon(
                                       onPressed: () async {
-                                        final ok = await _confirmDelete(context);
+                                        final ok = await _confirmDelete(
+                                          context,
+                                        );
                                         if (!ok) return;
 
-                                        final svc =
-                                            ref.read(notifikasiServiceProvider);
-                                        await svc.deleteNotifikasi(n.idNotifikasi);
+                                        final svc = ref.read(
+                                          notifikasiServiceProvider,
+                                        );
+                                        await svc.deleteNotifikasi(
+                                          n.idNotifikasi,
+                                        );
 
                                         ref.invalidate(notifikasiListProvider);
-                                        ref.invalidate(notifikasiUnreadCountProvider);
+                                        ref.invalidate(
+                                          notifikasiUnreadCountProvider,
+                                        );
 
                                         if (context.mounted) {
                                           Navigator.pop(context);
-                                          ScaffoldMessenger.of(context).showSnackBar(
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
                                             const SnackBar(
-                                              content: Text('Notifikasi dihapus'),
+                                              content: Text(
+                                                'Notifikasi dihapus',
+                                              ),
                                             ),
                                           );
                                         }
@@ -193,11 +311,15 @@ class NotificationsPage extends ConsumerWidget {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
-                        color: isRead
-                            ? Colors.black12
-                            : Colors.red.withOpacity(0.35),
+                        color: isSelected
+                            ? Colors.red
+                            : (isRead
+                                  ? Colors.black12
+                                  : Colors.red.withOpacity(0.35)),
                       ),
-                      color: Theme.of(context).colorScheme.surface,
+                      color: isSelected
+                          ? Colors.red.withOpacity(0.08)
+                          : Theme.of(context).colorScheme.surface,
                       boxShadow: [
                         BoxShadow(
                           blurRadius: 10,
@@ -209,6 +331,16 @@ class NotificationsPage extends ConsumerWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (_isSelectionMode)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: Icon(
+                              isSelected
+                                  ? Icons.check_circle
+                                  : Icons.radio_button_unchecked,
+                              color: Colors.red,
+                            ),
+                          ),
                         Stack(
                           children: [
                             Container(
@@ -275,7 +407,10 @@ class NotificationsPage extends ConsumerWidget {
                                 n.body,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 13, height: 1.35),
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  height: 1.35,
+                                ),
                               ),
                               const SizedBox(height: 8),
                               Align(
@@ -285,19 +420,30 @@ class NotificationsPage extends ConsumerWidget {
                                     final ok = await _confirmDelete(context);
                                     if (!ok) return;
 
-                                    final svc = ref.read(notifikasiServiceProvider);
+                                    final svc = ref.read(
+                                      notifikasiServiceProvider,
+                                    );
                                     await svc.deleteNotifikasi(n.idNotifikasi);
 
                                     ref.invalidate(notifikasiListProvider);
-                                    ref.invalidate(notifikasiUnreadCountProvider);
+                                    ref.invalidate(
+                                      notifikasiUnreadCountProvider,
+                                    );
 
                                     if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        const SnackBar(content: Text('Notifikasi dihapus')),
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Notifikasi dihapus'),
+                                        ),
                                       );
                                     }
                                   },
-                                  icon: const Icon(Icons.delete_outline, size: 18),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    size: 18,
+                                  ),
                                   label: const Text('Hapus'),
                                 ),
                               ),

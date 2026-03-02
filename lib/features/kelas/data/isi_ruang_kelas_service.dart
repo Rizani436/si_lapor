@@ -31,7 +31,7 @@ class IsiRuangKelasService {
       return (res as List)
           .map((e) => IsiRuangKelasModel.fromJson(e as Map<String, dynamic>))
           .toList();
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal mengambil daftar kelas');
   }
 
   Future<void> tambahSiswa({
@@ -43,7 +43,7 @@ class IsiRuangKelasService {
         'id_ruang_kelas': idRuangKelas,
         'id_data_siswa': idDataSiswa,
       });
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal menambahkan siswa');
   }
 
   Future<void> tambahGuru({
@@ -55,7 +55,7 @@ class IsiRuangKelasService {
         'id_ruang_kelas': idRuangKelas,
         'id_data_guru': idDataGuru,
       });
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal menambahkan guru');
   }
 
   Future<void> updateDataByAdmin({
@@ -67,7 +67,7 @@ class IsiRuangKelasService {
           .from('isiruangkelas')
           .update({'id_data_guru': idDataGuru})
           .eq('id', isiruangkelasId);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal mengubah data guru');
   }
 
   Future<void> updateData({
@@ -81,7 +81,7 @@ class IsiRuangKelasService {
           .update({'id_data_guru': idDataGuru})
           .eq('id_ruang_kelas', isiruangkelasId)
           .eq('id_user_guru', idUserGuru);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal mengubah data guru');
   }
 
   Future<void> unlinkGuru({required int isiruangkelasId}) async {
@@ -90,7 +90,7 @@ class IsiRuangKelasService {
           .from('isiruangkelas')
           .update({'id_user_guru': null})
           .eq('id', isiruangkelasId);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal melepas hubungan guru');
   }
 
   Future<void> unlinkSiswa({required int isiruangkelasId}) async {
@@ -99,13 +99,13 @@ class IsiRuangKelasService {
           .from('isiruangkelas')
           .update({'id_user_siswa': null})
           .eq('id', isiruangkelasId);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal melepas hubungan siswa');
   }
 
   Future<void> deleteSiswaRelasi({required int isiruangkelasId}) async {
     return networkGuard(() async {
       await _db.from('isiruangkelas').delete().eq('id', isiruangkelasId);
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal menghapus relasi siswa');
   }
 
   Future<String?> getIdUser({
@@ -121,7 +121,7 @@ class IsiRuangKelasService {
           .single();
 
       return res['id_user_siswa'] as String?;
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal mengambil id user siswa');
   }
 
   Future<String?> getIdUserGuru({required int idRuangKelas}) async {
@@ -150,6 +150,6 @@ class IsiRuangKelasService {
           .maybeSingle();
 
       return res != null;
-    }, 'Gagal mengambil daftar siswa');
+    }, 'Gagal memeriksa keanggotaan siswa');
   }
 }

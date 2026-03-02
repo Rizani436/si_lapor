@@ -35,6 +35,8 @@ class KelasSiswaListNotifier extends AsyncNotifier<List<KelasModel>> {
     final session = ref.watch(sessionProvider);
     final uid = session.userId;
 
+
+
     if (uid == null) return Future.value(0);
     return _service.getMy(uid, idKelas);
   }

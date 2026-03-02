@@ -223,13 +223,12 @@ class ProfilePage extends ConsumerWidget {
                           await ref
                               .read(profileActionProvider.notifier)
                               .updateEmail(ref, clean);
+
                           if (!context.mounted) return;
                           toast('Email diperbarui');
                         } catch (e) {
                           if (!context.mounted) return;
-                          ScaffoldMessenger.of(
-                            context,
-                          ).showSnackBar(SnackBar(content: Text(e.toString())));
+                          toast('Gagal memperbarui email');
                         }
                       },
               ),

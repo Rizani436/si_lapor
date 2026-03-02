@@ -17,7 +17,7 @@ class GabungKelasService {
         .select('id_ruang_kelas,kode_kelas')
         .eq('kode_kelas', kodeKelas)
         .maybeSingle();},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil ruang kelas',
     );
   }
 
@@ -37,7 +37,7 @@ class GabungKelasService {
         .toList();
 
     return list;},
-      'Gagal mengambil daftar siswa',
+      'Gagal memeriksa keanggotaan siswa',
     );
   }
 
@@ -51,7 +51,7 @@ class GabungKelasService {
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_user_siswa', idUser)
         .maybeSingle();},
-      'Gagal mengambil daftar siswa',
+      'Gagal memeriksa keanggotaan siswa',
     );
   }
 
@@ -68,7 +68,7 @@ class GabungKelasService {
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_data_siswa', idDataSiswa)
         .filter('id_user_siswa', 'is', null);},
-      'Gagal mengambil daftar siswa',
+      'Gagal bergabung ke kelas',
     );
   }
 
@@ -88,7 +88,7 @@ class GabungKelasService {
         .toList();
 
     return list;},
-      'Gagal mengambil daftar siswa',
+      'Gagal memeriksa keanggotaan guru',
     );
   }
 
@@ -101,7 +101,7 @@ class GabungKelasService {
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_user_guru', idUser)
         .maybeSingle();},
-      'Gagal mengambil daftar siswa',
+      'Gagal memeriksa keanggotaan guru',
     );
   }
 
@@ -118,7 +118,7 @@ class GabungKelasService {
         .eq('id_ruang_kelas', idRuangKelas)
         .eq('id_data_guru', idDataGuru)
         .filter('id_user_guru', 'is', null);},
-      'Gagal mengambil daftar siswa',
+      'Gagal bergabung ke kelas',
     );
   }
 }

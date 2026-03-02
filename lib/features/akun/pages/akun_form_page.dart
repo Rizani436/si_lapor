@@ -29,9 +29,9 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
   bool saving = false;
   bool obscure = true;
 
-  String _dialCode = '+62'; 
-  String _phoneNumberOnly = ''; 
-  String _isoCode = 'ID'; 
+  String _dialCode = '+62';
+  String _phoneNumberOnly = '';
+  String _isoCode = 'ID';
 
   @override
   void initState() {
@@ -220,24 +220,23 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                             }
                             final email = emailC.text.trim();
                             final nama = namaLengkapC.text.trim();
-                            final pass = passwordC.text; 
+                            final pass = passwordC.text;
                             final hpOnlyRaw = _phoneNumberOnly.trim().isNotEmpty
                                 ? _phoneNumberOnly.trim()
-                                : _phoneInputC.text
-                                      .trim(); 
+                                : _phoneInputC.text.trim();
 
                             final hpOnly = digitsOnly(hpOnlyRaw);
                             final hpFullNoPlus = digitsOnly(
                               '$_dialCode$hpOnly',
-                            ); 
+                            );
                             setState(() => saving = true);
                             if (!isEdit) {
                               try {
                                 final payload = AkunModel(
-                                  id: '', 
+                                  id: '',
                                   email: email,
                                   namaLengkap: nama,
-                                  noHp: hpFullNoPlus, 
+                                  noHp: hpFullNoPlus,
                                   role: role,
                                   isActive: aktif,
                                 );
@@ -252,10 +251,22 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                                 );
                               } catch (e) {
                                 if (!mounted) return;
-                                setState(() => saving = false);
-                                showSnackRoot(
-                                  rootContext,
-                                  'Gagal tambah akun: $e',
+
+                                String message = 'Terjadi kesalahan';
+
+                                final errorText = e.toString().toLowerCase();
+
+                                if (errorText.contains(
+                                      'already been registered',
+                                    ) ||
+                                    errorText.contains('already registered')) {
+                                  message = 'Email sudah terdaftar';
+                                } else {
+                                  message = e.toString();
+                                }
+
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(message)),
                                 );
                               } finally {
                                 if (mounted) setState(() => saving = false);

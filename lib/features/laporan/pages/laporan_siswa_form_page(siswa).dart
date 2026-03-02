@@ -294,10 +294,9 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         final uid = await ref
             .read(isiRuangKelasProvider)
             .getIdUserGuru(idRuangKelas: idRuangKelas);
-        
 
         if (uid != null) {
-           final response = Supabase.instance.client.functions.invoke(
+          final response = Supabase.instance.client.functions.invoke(
             'push-notification-v1',
             body: {
               'user_id': uid,
@@ -345,6 +344,34 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
   Widget build(BuildContext context) {
     final actionState = ref.watch(laporanActionProvider);
     final saving = actionState.isLoading;
+
+    final tasmiLama = ref.watch(
+      lastlaporan((
+        idSiswa: siswa!.idDataSiswa!.toString(),
+        idKelas: kelas!.idRuangKelas!.toString(),
+        program: 'tasmi',
+        pelapor: 'Orang Tua',
+      )),
+    );
+    final ziyadahLama = ref.watch(
+      lastlaporan((
+        idSiswa: siswa!.idDataSiswa!.toString(),
+        idKelas: kelas!.idRuangKelas!.toString(),
+        program: 'ziyadah',
+        pelapor: 'Orang Tua',
+      )),
+    );
+    final murajaahLama = ref.watch(
+      lastlaporan((
+        idSiswa: siswa!.idDataSiswa!.toString(),
+        idKelas: kelas!.idRuangKelas!.toString(),
+        program: 'murajaah',
+        pelapor: 'Orang Tua',
+      )),
+    );
+    final dataTasmi = extractData(tasmiLama, 'tasmi');
+    final dataZiyadah = extractData(ziyadahLama, 'ziyadah');
+    final dataMurajaah = extractData(murajaahLama, 'murajaah');
 
     return Scaffold(
       appBar: AppBar(title: Text(isEdit ? 'Edit Laporan' : 'Buat Laporan')),
@@ -443,6 +470,13 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                       const SizedBox(height: 12),
 
                       if (_openSections.contains('tasmi')) ...[
+                        Text(
+                          'Tasmi Terakhir: ${dataTasmi != null ? 'Juz ${dataTasmi['juz']} | Surah ${dataTasmi['surah']} : ${dataTasmi['ayat']} pada tanggal ${dataTasmi['tanggal']}' : 'Belum ada laporan tasmi sebelumnya'}',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                         jsaFields(
                           'Tasmi',
                           juz: tJuzC,
@@ -452,6 +486,13 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                         const SizedBox(height: 12),
                       ],
                       if (_openSections.contains('ziyadah')) ...[
+                        Text(
+                          'Ziyadah Terakhir: ${dataZiyadah != null ? 'Juz ${dataZiyadah['juz']} | Surah ${dataZiyadah['surah']} : ${dataZiyadah['ayat']} pada tanggal ${dataZiyadah['tanggal']}' : 'Belum ada laporan ziyadah sebelumnya'}',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                         jsaFields(
                           'Ziyadah',
                           juz: zJuzC,
@@ -462,6 +503,13 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                       ],
 
                       if (_openSections.contains('murajaah')) ...[
+                        Text(
+                          'Murajaah Terakhir: ${dataMurajaah != null ? 'Juz ${dataMurajaah['juz']} | Surah ${dataMurajaah['surah']} : ${dataMurajaah['ayat']} pada tanggal ${dataMurajaah['tanggal']}' : 'Belum ada laporan murajaah sebelumnya'}',
+                          style: TextStyle(
+                            fontStyle: FontStyle.italic,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
                         jsaFields(
                           'Murajaah',
                           juz: mJuzC,

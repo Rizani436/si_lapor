@@ -28,7 +28,7 @@ class NotifikasiService {
     final list = (res as List).cast<Map<String, dynamic>>();
     return list.map(NotifikasiModel.fromJson).toList();
     },
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil notifikasi',
     );
   }
 
@@ -45,7 +45,7 @@ class NotifikasiService {
 
     return (res as List).length;
     },
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil jumlah notifikasi belum dibaca',
     );
   }
 
@@ -60,7 +60,7 @@ class NotifikasiService {
         .eq('id_notifikasi', idNotifikasi)
         .eq('id_user', uid);
         },
-      'Gagal mengambil daftar siswa',
+      'Gagal mengubah status notifikasi',
     );
   }
 
@@ -75,7 +75,7 @@ class NotifikasiService {
         .eq('id_user', uid)
         .eq('is_read', 0);
         },
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil notifikasi',
     );
   }
 
@@ -90,7 +90,7 @@ class NotifikasiService {
         .eq('id_notifikasi', idNotifikasi)
         .eq('id_user', uid);
         },
-      'Gagal mengambil daftar siswa',
+      'Gagal menghapus notifikasi',
     );
   }
 
@@ -108,7 +108,7 @@ class NotifikasiService {
       'is_read': 0,
     });
     },
-      'Gagal mengambil daftar siswa',
+      'Gagal membuat notifikasi',
     );
   }
 }

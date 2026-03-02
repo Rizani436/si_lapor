@@ -28,7 +28,7 @@ class KelasService {
 
     final list = (res as List).cast<Map<String, dynamic>>();
     return list.map(KelasModel.fromJson).toList();},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil daftar kelas',
     );
   }
 
@@ -70,7 +70,7 @@ class KelasService {
         .single();
 
     return KelasModel.fromJson(res);},
-      'Gagal mengambil daftar siswa',
+      'Gagal membuat kelas',
     );
   }
 
@@ -107,7 +107,7 @@ class KelasService {
         .single();
 
     return KelasModel.fromJson(res);},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengubah kelas',
     );
   }
 
@@ -135,7 +135,7 @@ class KelasService {
         .single();
 
     return KelasModel.fromJson(res);},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengubah status aktif kelas',
     );
   }
 
@@ -153,7 +153,7 @@ class KelasService {
     await _db.from('ruangkelas').delete().eq('id_ruang_kelas', idRuangKelas);
 
     await _db.from('kelasalquran').delete().eq('id_kelas', idKelas);},
-      'Gagal mengambil daftar siswa',
+      'Gagal menghapus kelas',
     );
   }
 
@@ -194,7 +194,7 @@ class KelasService {
 
     final list = (res as List).cast<Map<String, dynamic>>();
     return list.map(KelasModel.fromJson).toList();},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil daftar kelas',
     );
   }
 
@@ -235,7 +235,7 @@ class KelasService {
 
     final list = (res as List).cast<Map<String, dynamic>>();
     return list.map(KelasModel.fromJson).toList();},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil daftar kelas',
     );
   }
 
@@ -284,24 +284,24 @@ class KelasService {
         .single();
 
     return temp;},
-      'Gagal mengambil daftar siswa',
+      'Gagal membuat kelas',
     );
   }
 
-  Future<int?> getMy(String id_user_siswa, int idKelas) async {
+  Future<int?> getMy(String id_user_siswa, int idRuangKelas) async {
     return networkGuard(
       () async {
     final res = await _db
         .from('isiruangkelas')
         .select('id_data_siswa')
         .eq('id_user_siswa', id_user_siswa)
-        .eq('id_ruang_kelas', idKelas)
+        .eq('id_ruang_kelas', idRuangKelas)
         .maybeSingle();
 
     if (res == null) return null;
 
     return res['id_data_siswa'] as int?;},
-      'Gagal mengambil daftar siswa',
+      'Gagal mengambil id data siswa',
     );
   }
 }
