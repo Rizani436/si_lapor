@@ -12,7 +12,7 @@ class ParentDashboard extends ConsumerWidget {
     final dashboardAsync = ref.watch(siswaDashboardProvider);
 
     return AppScaffold(
-      title: 'Dashboard Orang Tua / Siswa',
+      title: 'Dashboard Orang Tua',
       body: dashboardAsync.when(
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

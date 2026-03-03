@@ -256,36 +256,43 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
 
         const SizedBox(height: 12),
 
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Buat Laporan'),
-            onPressed:
-                (widget.existing == null ||
-                    widget.existingKelas == null ||
-                    selectedDate == null)
-                ? null
-                : () async {
-                    final changed = await Navigator.push<bool>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => LaporanSiswaFormPage(
-                          existing: widget.existing!,
-                          existingKelas: widget.existingKelas!,
-                        ),
-                      ),
-                    );
-
-                    if (changed == true) {
-                      final args = _providerArgs();
-                      if (args != null) {
-                        ref.invalidate(laporanByTanggalProvider(args));
-                      }
-                    }
-                  },
+        if (kelas!.ketAktif == 0) ...[
+          const Text(
+            'Tidak bisa membuat laporan karena kelas tidak aktif',
+            style: TextStyle(color: Colors.red),
           ),
-        ),
+        ] else ...[
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Buat Laporan'),
+              onPressed:
+                  (widget.existing == null ||
+                      widget.existingKelas == null ||
+                      selectedDate == null)
+                  ? null
+                  : () async {
+                      final changed = await Navigator.push<bool>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => LaporanSiswaFormPage(
+                            existing: widget.existing!,
+                            existingKelas: widget.existingKelas!,
+                          ),
+                        ),
+                      );
+
+                      if (changed == true) {
+                        final args = _providerArgs();
+                        if (args != null) {
+                          ref.invalidate(laporanByTanggalProvider(args));
+                        }
+                      }
+                    },
+            ),
+          ),
+        ],
       ],
     );
   }
