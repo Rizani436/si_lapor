@@ -19,11 +19,13 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
   late final TextEditingController nisC;
   late final TextEditingController alamatC;
   late final TextEditingController tahunMasukC;
+  late final TextEditingController jumlahJuzC;
 
   String jk = 'L';
   DateTime tglLahir = DateTime(2010, 1, 1);
   bool aktif = true;
   bool saving = false;
+  int jumlahJuz = 0;
 
   @override
   void initState() {
@@ -34,10 +36,13 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
     nisC = TextEditingController(text: s?.nis ?? '');
     alamatC = TextEditingController(text: s?.alamat ?? '');
     tahunMasukC = TextEditingController(text: s?.tahunMasuk ?? '');
+    jumlahJuzC = TextEditingController(text: s?.jumlahJuz.toString() ?? '0');
 
     jk = s?.jenisKelamin ?? 'L';
     tglLahir = s?.tanggalLahir ?? DateTime(2010, 1, 1);
     aktif = (s?.ketAktif ?? 1) == 1;
+    jumlahJuz = s?.jumlahJuz ?? 0;
+
   }
 
   @override
@@ -46,6 +51,7 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
     nisC.dispose();
     alamatC.dispose();
     tahunMasukC.dispose();
+    jumlahJuzC.dispose();
     super.dispose();
   }
 
@@ -119,6 +125,25 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
               const SizedBox(height: 12),
 
               TextFormField(
+                controller: jumlahJuzC,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Target Juz',
+                  hintText: 'Contoh: 2',
+                  border: OutlineInputBorder(),
+                ),
+                validator: (v) {
+                  final t = (v ?? '').trim();
+                  if (t.isEmpty) return 'Wajib diisi';
+                  final n = int.tryParse(t);
+                  if (n == null) return 'Harus angka';
+                  if (n < 0) return 'Target Juz tidak valid';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 12),
+
+              TextFormField(
                 controller: tahunMasukC,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
@@ -178,6 +203,7 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                               tahunMasuk: tahunMasukC.text.trim(),
                               tanggalLahir: tglLahir,
                               ketAktif: aktif ? 1 : 0,
+                              jumlahJuz: widget.existing?.jumlahJuz ?? 0,
                             );
 
                             final notifier = ref.read(

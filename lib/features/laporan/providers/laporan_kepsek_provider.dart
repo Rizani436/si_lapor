@@ -63,7 +63,7 @@ class LaporanKepsekNotifier extends Notifier<LaporanKepsekState> {
 
   Future<void> fetchSummary({
     required String tahunPelajaran,
-    required String semester,
+    String? semester,
   }) async {
     state = state.copyWith(loading: true, error: null);
 

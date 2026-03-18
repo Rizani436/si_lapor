@@ -1,8 +1,9 @@
 import '../utils/juz_map.dart';
+
 class TasmiPoint {
   final int juz;
-  final String surahKey; 
-  final int ayat; 
+  final String surahKey;
+  final int ayat;
   const TasmiPoint({
     required this.juz,
     required this.surahKey,
@@ -30,8 +31,10 @@ int? parseAyatMax(String raw) {
 TasmiPoint? parseTasmiPoint(String? tasmi) {
   if (tasmi == null) return null;
 
-  final mJuz =
-      RegExp(r'juz\s*:\s*(\d+)', caseSensitive: false).firstMatch(tasmi);
+  final mJuz = RegExp(
+    r'juz\s*:\s*(\d+)',
+    caseSensitive: false,
+  ).firstMatch(tasmi);
   final mSurah = RegExp(
     r'surah\s*:\s*([^\n\r]+?)(?=\s+ayat\s*:|$)',
     caseSensitive: false,
@@ -97,21 +100,22 @@ class TasmiSummary {
   final List<int> juzSelesai;
   final bool memenuhi;
   final String? nama;
+  final int jumlahJuz;
 
   const TasmiSummary({
     required this.idDataSiswa,
     required this.juzSelesai,
     required this.memenuhi,
     required this.nama,
+    required this.jumlahJuz,
   });
 }
 
 List<TasmiSummary> buildSummaryCompletedJuz({
   required List<Map<String, dynamic>> laporan,
-  required String jenisKelas, 
+  required String jenisKelas,
   required Map<int, String> namaById,
 }) {
-  final wajib = (jenisKelas.toLowerCase() == 'Tahfiz') ? 3 : 2;
 
   final Map<int, Map<int, JuzPosition>> furthestBySiswa = {};
 
@@ -136,6 +140,21 @@ List<TasmiSummary> buildSummaryCompletedJuz({
   final result = <TasmiSummary>[];
 
   furthestBySiswa.forEach((idSiswa, furthestByJuz) {
+    final nama = namaById.map((key, value) {
+      final parts = value.split('||');
+      if (parts.length == 2) {
+        return MapEntry(key, parts[0]);
+      }
+      return MapEntry(key, value);
+    });
+    final wajib = namaById.map((key, value) {
+      final parts = value.split('||');
+      if (parts.length == 2) {
+        return MapEntry(key, int.tryParse(parts[1]) ?? 0);
+      }
+      return MapEntry(key, 0);
+    });
+
     final selesai = <int>[];
 
     furthestByJuz.forEach((juz, pos) {
@@ -144,12 +163,15 @@ List<TasmiSummary> buildSummaryCompletedJuz({
 
     selesai.sort();
 
-    result.add(TasmiSummary(
-      idDataSiswa: idSiswa,
-      juzSelesai: selesai,
-      memenuhi: selesai.length >= wajib,
-      nama: namaById[idSiswa],
-    ));
+    result.add(
+      TasmiSummary(
+        idDataSiswa: idSiswa,
+        juzSelesai: selesai,
+        memenuhi: selesai.length >= wajib[idSiswa]!,
+        nama: nama[idSiswa],
+        jumlahJuz: wajib[idSiswa]!,
+      ),
+    );
   });
 
   result.sort((a, b) {

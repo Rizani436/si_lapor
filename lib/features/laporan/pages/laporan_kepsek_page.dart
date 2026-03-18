@@ -55,18 +55,16 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
                     (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
               ),
               const SizedBox(height: 10),
-
               TextFormField(
                 controller: semesterC,
                 decoration: const InputDecoration(
                   labelText: 'Semester',
-                  hintText: '1 / 2',
+                  hintText: '1',
                   border: OutlineInputBorder(),
                 ),
-                validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 10),
 
               SizedBox(
                 width: double.infinity,
@@ -85,7 +83,9 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
                           if (!_formKey.currentState!.validate()) return;
                           await notifier.fetchSummary(
                             tahunPelajaran: tahunPelajaranC.text,
-                            semester: semesterC.text,
+                            semester: semesterC.text.trim().isEmpty
+                                ? null
+                                : semesterC.text.trim(),
                           );
                         },
                 ),

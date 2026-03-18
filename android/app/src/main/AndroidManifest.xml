@@ -9,7 +9,7 @@
         android:maxSdkVersion="32"/>
 
     <application
-        android:label="si_lapor"
+        android:label="Si Smart"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

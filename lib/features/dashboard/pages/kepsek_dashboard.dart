@@ -7,7 +7,7 @@ class KepsekDashboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const AppScaffold(
-      title: 'Si Lapor',
+      title: 'Si Smart',
       body: Center(child: Text('Dashboard Kepsek')),
     );
   }

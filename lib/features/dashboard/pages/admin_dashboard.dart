@@ -20,38 +20,43 @@ class AdminDashboard extends ConsumerWidget {
             child: Text('Terjadi kesalahan:\n$e', textAlign: TextAlign.center),
           ),
           data: (data) {
-            return GridView.count(
-              
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-              childAspectRatio: 0.8,
-              children: [
-                _DashboardCard(
-                  title: 'Ruang Kelas',
-                  total: data['ruangkelas']!,
-                  icon: Icons.meeting_room,
-                  filterProvider: ruangkelasFilterProvider,
-                ),
-                _DashboardCard(
-                  title: 'Data Siswa',
-                  total: data['datasiswa']!,
-                  icon: Icons.people,
-                  filterProvider: datasiswaFilterProvider,
-                ),
-                _DashboardCard(
-                  title: 'Data Guru',
-                  total: data['dataguru']!,
-                  icon: Icons.person,
-                  filterProvider: dataguruFilterProvider,
-                ),
-                _DashboardCard(
-                  title: 'Profiles',
-                  total: data['profiles']!,
-                  icon: Icons.account_circle,
-                  filterProvider: profilesFilterProvider,
-                ),
-              ],
+            return RefreshIndicator(
+              onRefresh: () async {
+                await ref.refresh(dashboardCountProvider.future);
+              },
+              child: GridView.count(
+                physics: const AlwaysScrollableScrollPhysics(), // penting!
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 0.8,
+                children: [
+                  _DashboardCard(
+                    title: 'Ruang Kelas',
+                    total: data['ruangkelas']!,
+                    icon: Icons.meeting_room,
+                    filterProvider: ruangkelasFilterProvider,
+                  ),
+                  _DashboardCard(
+                    title: 'Data Siswa',
+                    total: data['datasiswa']!,
+                    icon: Icons.people,
+                    filterProvider: datasiswaFilterProvider,
+                  ),
+                  _DashboardCard(
+                    title: 'Data Guru',
+                    total: data['dataguru']!,
+                    icon: Icons.person,
+                    filterProvider: dataguruFilterProvider,
+                  ),
+                  _DashboardCard(
+                    title: 'Profiles',
+                    total: data['profiles']!,
+                    icon: Icons.account_circle,
+                    filterProvider: profilesFilterProvider,
+                  ),
+                ],
+              ),
             );
           },
         ),
@@ -108,9 +113,7 @@ class _DashboardCard extends ConsumerWidget {
                   fontSize: 14,
                 ),
               ),
-
               const SizedBox(height: 8),
-
               SizedBox(
                 width: 120,
                 height: 34,
@@ -125,7 +128,8 @@ class _DashboardCard extends ConsumerWidget {
                       value: selectedStatus,
                       isExpanded: true,
                       isDense: true,
-                      style: const TextStyle(fontSize: 12, color: Colors.black),
+                      style:
+                          const TextStyle(fontSize: 12, color: Colors.black),
                       items: const [
                         DropdownMenuItem(value: 'Semua', child: Text('Semua')),
                         DropdownMenuItem(value: 'Aktif', child: Text('Aktif')),
@@ -135,7 +139,9 @@ class _DashboardCard extends ConsumerWidget {
                         ),
                       ],
                       onChanged: (value) {
-                        ref.read(filterProvider.notifier).setStatus(value!);
+                        ref
+                            .read(filterProvider.notifier)
+                            .setStatus(value!);
                       },
                     ),
                   ),
@@ -143,13 +149,10 @@ class _DashboardCard extends ConsumerWidget {
               ),
             ],
           ),
-
           Column(
             children: [
               Icon(icon, size: 40, color: Colors.white),
-
               const SizedBox(height: 8),
-
               Text(
                 total.toString(),
                 style: const TextStyle(
@@ -158,9 +161,7 @@ class _DashboardCard extends ConsumerWidget {
                   color: Colors.white,
                 ),
               ),
-
               const SizedBox(height: 4),
-
               const Text(
                 'Total Data',
                 style: TextStyle(fontSize: 11, color: Colors.white70),

@@ -6,7 +6,8 @@ class SiswaModel {
   final String jenisKelamin;
   final String tahunMasuk; 
   final DateTime tanggalLahir;
-  final int ketAktif;      
+  final int ketAktif;
+  final int jumlahJuz;      
 
   SiswaModel({
     required this.idDataSiswa,
@@ -17,6 +18,7 @@ class SiswaModel {
     required this.tahunMasuk,
     required this.tanggalLahir,
     required this.ketAktif,
+    required this.jumlahJuz,
   });
 
   bool get isAktif => ketAktif == 1;
@@ -31,6 +33,7 @@ class SiswaModel {
       tahunMasuk: (json['tahun_masuk'] ?? '').toString(),
       tanggalLahir: DateTime.tryParse('${json['tanggal_lahir']}') ?? DateTime(2000, 1, 1),
       ketAktif: (json['ket_aktif'] as num?)?.toInt() ?? 1,
+      jumlahJuz: (json['jumlah_juz'] as num?)?.toInt() ?? 0,
     );
   }
 
@@ -44,6 +47,7 @@ class SiswaModel {
       'tanggal_lahir':
           '${tanggalLahir.year.toString().padLeft(4, '0')}-${tanggalLahir.month.toString().padLeft(2, '0')}-${tanggalLahir.day.toString().padLeft(2, '0')}',
       'ket_aktif': ketAktif,
+      'jumlah_juz': jumlahJuz,
     };
   }
 
@@ -58,6 +62,7 @@ class SiswaModel {
     String? tahunMasuk,
     DateTime? tanggalLahir,
     int? ketAktif,
+    int? jumlahJuz,
   }) {
     return SiswaModel(
       idDataSiswa: idDataSiswa ?? this.idDataSiswa,
@@ -68,6 +73,7 @@ class SiswaModel {
       tahunMasuk: tahunMasuk ?? this.tahunMasuk,
       tanggalLahir: tanggalLahir ?? this.tanggalLahir,
       ketAktif: ketAktif ?? this.ketAktif,
+      jumlahJuz: jumlahJuz ?? this.jumlahJuz,
     );
   }
 }

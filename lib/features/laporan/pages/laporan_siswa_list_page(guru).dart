@@ -6,6 +6,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../siswa/models/siswa_model.dart';
 import '../../kelas/models/kelas_model.dart';
@@ -44,6 +45,10 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     'Tasmi Orang Tua': false,
   };
 
+  final TextEditingController _jumlahJuzController = TextEditingController();
+  bool _isEditingJuz = false;
+  bool _isSavingJuz = false;
+
   SiswaModel? siswa;
   KelasModel? kelas;
   DateTime? startDate;
@@ -59,6 +64,7 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     siswa = widget.existing;
     kelas = widget.existingKelas;
     selectedDate = DateTime.now();
+    _jumlahJuzController.text = siswa?.jumlahJuz?.toString() ?? '';
 
     _startAutoRefresh();
   }
@@ -244,6 +250,35 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     } catch (e) {
       toast('Gagal hapus rapor: $e');
     }
+  }
+
+  Future<void> _updateJumlahJuz() async {
+    final newValue = int.tryParse(_jumlahJuzController.text);
+    if (newValue == null || siswa?.idDataSiswa == null) return;
+
+    setState(() => _isSavingJuz = true);
+
+    try {
+      await Supabase.instance.client
+          .from('datasiswa')
+          .update({'jumlah_juz': newValue})
+          .eq('id_data_siswa', siswa!.idDataSiswa);
+
+      setState(() {
+        siswa = siswa!.copyWith(jumlahJuz: newValue);
+        _isEditingJuz = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Target Juz berhasil diperbarui')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal update: $e')));
+    }
+
+    setState(() => _isSavingJuz = false);
   }
 
   Widget _buildLaporanHarian({
@@ -469,7 +504,7 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
     final ringkasAsync = ref.watch(
       laporanRingkasDetailProvider((
         idSiswa: siswa!.idDataSiswa!,
-        idKelas: kelas!.idRuangKelas  !,
+        idKelas: kelas!.idRuangKelas!,
         start: startDate!,
         end: endDate!,
       )),
@@ -651,6 +686,76 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
                         title: const Text('NIS'),
                         subtitle: Text(siswa?.nis ?? '-'),
                       ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.book),
+                        title: const Text('Target Juz'),
+                        subtitle: _isEditingJuz
+                            ? Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _jumlahJuzController,
+                                      keyboardType: TextInputType.number,
+                                      decoration: const InputDecoration(
+                                        isDense: true,
+                                        hintText: 'Masukkan target juz',
+                                      ),
+                                    ),
+                                  ),
+                                  if (_isSavingJuz)
+                                    const Padding(
+                                      padding: EdgeInsets.only(left: 8),
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    )
+                                  else ...[
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.check,
+                                        color: Colors.green,
+                                      ),
+                                      onPressed: _updateJumlahJuz,
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          _isEditingJuz = false;
+                                          _jumlahJuzController.text =
+                                              siswa?.jumlahJuz?.toString() ??
+                                              '';
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      siswa?.jumlahJuz.toString() ?? '-',
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.edit),
+                                    onPressed: () {
+                                      setState(() => _isEditingJuz = true);
+                                    },
+                                  ),
+                                ],
+                              ),
+                      ),
+
                       const Divider(height: 18),
 
                       const Text(

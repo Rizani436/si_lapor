@@ -57,6 +57,7 @@ class SiswaImportController extends AsyncNotifier<ImportResult?> {
         'tahun_masuk',
         'tanggal_lahir',
         'ket_aktif',
+        'jumlah_juz',
       ];
 
       for (final h in requiredHeaders) {
@@ -110,6 +111,7 @@ class SiswaImportController extends AsyncNotifier<ImportResult?> {
         final tahunMasuk = cell(col('tahun_masuk'));
         final tgl = cell(col('tanggal_lahir'));
         final aktifStr = cell(col('ket_aktif'));
+        final jumlahJuzStr = cell(col('jumlah_juz'));
 
         final isEmptyRow = [
           nama,
@@ -119,6 +121,7 @@ class SiswaImportController extends AsyncNotifier<ImportResult?> {
           tahunMasuk,
           tgl,
           aktifStr,
+          jumlahJuzStr,
         ].every((e) => e.isEmpty);
         if (isEmptyRow) continue;
 
@@ -153,6 +156,12 @@ class SiswaImportController extends AsyncNotifier<ImportResult?> {
           continue;
         }
 
+        final jumlahJuz = int.tryParse(jumlahJuzStr);
+        if (jumlahJuz == null || jumlahJuz < 0) {
+          errors.add('Baris ${r + 1}: jumlah_juz harus angka >= 0.');
+          continue;
+        }
+
         payload.add({
           'nama_lengkap': nama,
           'nis': nis,
@@ -162,6 +171,7 @@ class SiswaImportController extends AsyncNotifier<ImportResult?> {
           'tanggal_lahir':
               '${dt.year.toString().padLeft(4, '0')}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')}',
           'ket_aktif': akt,
+          'jumlah_juz': jumlahJuz,
         });
       }
 

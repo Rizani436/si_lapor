@@ -567,6 +567,13 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
                         title: const Text('NIS'),
                         subtitle: Text(siswa?.nis ?? '-'),
                       ),
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: const Icon(Icons.book),
+                        title: const Text('Target Juz'),
+                        subtitle: Text(siswa?.jumlahJuz?.toString() ?? '-'),
+                      ),
+
                       const Divider(height: 18),
 
                       raporAsync.when(
