@@ -8,7 +8,6 @@ class LaporanKepsekService {
   Future<List<Map<String, dynamic>>> fetchLaporanTasmiByJenisKelas({
     required String tahunPelajaran,
     String? semester,
-    required String jenisKelas,
   }) async {
     return networkGuard(() async {
       List<String> parts = tahunPelajaran.split('-');
@@ -29,7 +28,6 @@ class LaporanKepsekService {
         kelasList = await sb
             .from('kelasalquran')
             .select('id_kelas')
-            .eq('jenis_kelas', jenisKelas)
             .inFilter('tahun_pelajaran', validTahunPelajaran);
       } else {
         final tahunTerakhir = validTahunPelajaran.last;
@@ -38,7 +36,6 @@ class LaporanKepsekService {
           kelasList = await sb
               .from('kelasalquran')
               .select('id_kelas')
-              .eq('jenis_kelas', jenisKelas)
               .eq('semester', semester)
               .inFilter('tahun_pelajaran', validTahunPelajaran);
         } else {
@@ -48,14 +45,12 @@ class LaporanKepsekService {
           kelasList = await sb
               .from('kelasalquran')
               .select('id_kelas')
-              .eq('jenis_kelas', jenisKelas)
               .inFilter('tahun_pelajaran', validTahunPelajaran);
           
           kelasList.addAll(
             await sb
                 .from('kelasalquran')
                 .select('id_kelas')
-                .eq('jenis_kelas', jenisKelas)
                 .eq('semester', semester)
                 .eq('tahun_pelajaran', temp1),
           );

@@ -464,51 +464,18 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(Icons.date_range),
-          title: const Text('Rentang Tanggal'),
-          subtitle: Text(
-            startDate == null || endDate == null
-                ? '-'
-                : '${_fmtDate(startDate!)} s/d ${_fmtDate(endDate!)}',
-          ),
-          trailing: TextButton(
-            onPressed: _pickRangeDate,
-            child: const Text('Pilih'),
-          ),
-        ),
-
-        const Divider(height: 24),
-
-        if (siswa == null ||
-            kelas == null ||
-            startDate == null ||
-            endDate == null)
-          const Text('Pilih siswa, kelas, dan rentang tanggal')
-        else
-          _buildRingkasContent(),
+        _buildRingkasContent(),
       ],
     );
   }
 
   Widget _buildRingkasContent() {
-    if (siswa == null ||
-        kelas == null ||
-        startDate == null ||
-        endDate == null) {
-      return const Text('Data belum lengkap');
-    }
+    final provider = laporanRingkasDetailProvider((
+      idSiswa: siswa!.idDataSiswa!,
+      idKelas: kelas!.idRuangKelas!,
+    ));
 
-    final ringkasAsync = ref.watch(
-      laporanRingkasDetailProvider((
-        idSiswa: siswa!.idDataSiswa!,
-        idKelas: kelas!.idRuangKelas!,
-        start: startDate!,
-        end: endDate!,
-      )),
-    );
+    final ringkasAsync = ref.refresh(provider);
 
     return ringkasAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -521,30 +488,30 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
               "Ringkasan Laporan dari Guru",
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 8),
             _buildRingkasSection('Ziyadah', data['ziyadahGuru']!, 'Guru'),
-            const SizedBox(height: 16),
+            const Divider(height: 8),
             _buildRingkasSection('Murajaah', data['murajaahGuru']!, 'Guru'),
-            const SizedBox(height: 16),
+            const Divider(height: 8),
             _buildRingkasSection('Tasmi', data['tasmiGuru']!, 'Guru'),
             const Divider(height: 24),
             Text(
               "Ringkasan Laporan dari Orang Tua",
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 8),
             _buildRingkasSection(
               'Ziyadah',
               data['ziyadahOrangTua']!,
               'Orang Tua',
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 8),
             _buildRingkasSection(
               'Murajaah',
               data['murajaahOrangTua']!,
               'Orang Tua',
             ),
-            const SizedBox(height: 16),
+            const Divider(height: 8),
             _buildRingkasSection('Tasmi', data['tasmiOrangTua']!, 'Orang Tua'),
           ],
         );

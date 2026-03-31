@@ -15,7 +15,6 @@ final siswaListProvider =
     AsyncNotifierProvider<SiswaListNotifier, List<SiswaModel>>(
   SiswaListNotifier.new,
 );
-
 class SiswaListNotifier extends AsyncNotifier<List<SiswaModel>> {
   late final SiswaService _service = ref.read(siswaServiceProvider);
 

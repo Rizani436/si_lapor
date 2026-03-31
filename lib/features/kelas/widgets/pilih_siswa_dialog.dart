@@ -65,7 +65,9 @@ class _PilihSiswaDialogState extends ConsumerState<_PilihSiswaDialog> {
               final matchJk =
                   _filterJk == null || s.jenisKelamin == _filterJk;
 
-              return matchSearch && matchTahun && matchJk;
+              final matchAktif = s.isAktif; 
+
+              return matchSearch && matchTahun && matchJk && matchAktif;
             }).toList();
 
             return Column(

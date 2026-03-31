@@ -89,7 +89,9 @@ class _GabungKelasPageState extends ConsumerState<GabungKelasPage> {
 
               const SizedBox(height: 12),
 
-              if (st.idRuangKelas != null)
+              if (st.idRuangKelas != null &&
+                  st.siswaList.isNotEmpty &&
+                  st.selectedIdDataSiswa != null)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(

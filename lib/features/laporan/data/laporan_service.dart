@@ -44,8 +44,6 @@ class LaporanService {
   Future<List<Map<String, dynamic>>> getLaporanRange({
     required int idSiswa,
     required int idRuangKelas,
-    required DateTime start,
-    required DateTime end,
   }) async {
     return networkGuard(() async {
 
@@ -54,8 +52,6 @@ class LaporanService {
           .select()
           .eq('id_data_siswa', idSiswa)
           .eq('id_ruang_kelas', idRuangKelas)
-          .gte('tanggal', start.toIso8601String())
-          .lte('tanggal', end.toIso8601String())
           .order('tanggal');
 
       return List<Map<String, dynamic>>.from(res);

@@ -10,49 +10,44 @@ final laporanKepsekServiceProvider = Provider<LaporanKepsekService>((ref) {
 
 final laporanKepsekProvider =
     NotifierProvider<LaporanKepsekNotifier, LaporanKepsekState>(
-  LaporanKepsekNotifier.new,
-);
+      LaporanKepsekNotifier.new,
+    );
 
 class LaporanKepsekState {
   final bool loading;
   final String? error;
 
-  final List<TasmiSummary> summaryReguler;
-  final List<TasmiSummary> summaryTahfiz;
+  final List<TasmiSummary> summaryAll;
 
   const LaporanKepsekState({
     required this.loading,
     required this.error,
-    required this.summaryReguler,
-    required this.summaryTahfiz,
+    required this.summaryAll,
   });
 
-  factory LaporanKepsekState.initial() => const LaporanKepsekState(
-        loading: false,
-        error: null,
-        summaryReguler: [],
-        summaryTahfiz: [],
-      );
+  factory LaporanKepsekState.initial() =>
+      const LaporanKepsekState(loading: false, error: null, summaryAll: []);
 
   LaporanKepsekState copyWith({
     bool? loading,
     String? error,
-    List<TasmiSummary>? summaryReguler,
-    List<TasmiSummary>? summaryTahfiz,
+    List<TasmiSummary>? summaryAll,
   }) {
     return LaporanKepsekState(
       loading: loading ?? this.loading,
       error: error,
-      summaryReguler: summaryReguler ?? this.summaryReguler,
-      summaryTahfiz: summaryTahfiz ?? this.summaryTahfiz,
+      summaryAll: summaryAll ?? this.summaryAll,
     );
   }
 
-  int get memenuhiReguler => summaryReguler.where((e) => e.memenuhi).length;
-  int get belumReguler => summaryReguler.where((e) => !e.memenuhi).length;
+  int get memenuhiReguler => summaryAll.where((e) => e.memenuhi && e.jumlahJuz <= 2).length;
+  int get belumReguler => summaryAll.where((e) => !e.memenuhi && e.jumlahJuz <= 2).length;
 
-  int get memenuhiTahfiz => summaryTahfiz.where((e) => e.memenuhi).length;
-  int get belumTahfiz => summaryTahfiz.where((e) => !e.memenuhi).length;
+  int get memenuhiTahfiz => summaryAll.where((e) => e.memenuhi && e.jumlahJuz > 2).length;
+  int get belumTahfiz => summaryAll.where((e) => !e.memenuhi && e.jumlahJuz > 2).length;
+
+  List<TasmiSummary> get summaryReguler => summaryAll.where((e) => e.jumlahJuz <= 2).toList();
+  List<TasmiSummary> get summaryTahfiz => summaryAll.where((e) => e.jumlahJuz > 2).toList();
 }
 
 class LaporanKepsekNotifier extends Notifier<LaporanKepsekState> {
@@ -70,47 +65,28 @@ class LaporanKepsekNotifier extends Notifier<LaporanKepsekState> {
     try {
       final service = ref.read(laporanKepsekServiceProvider);
 
-      final laporanReg = await service.fetchLaporanTasmiByJenisKelas(
+      final laporan = await service.fetchLaporanTasmiByJenisKelas(
         tahunPelajaran: tahunPelajaran,
         semester: semester,
-        jenisKelas: 'Reguler',
-      );
-
-      final laporanTah = await service.fetchLaporanTasmiByJenisKelas(
-        tahunPelajaran: tahunPelajaran,
-        semester: semester,
-        jenisKelas: 'Tahfiz',
       );
 
       final ids = <int>{};
-      for (final r in laporanReg) {
-        final id = r['id_data_siswa'];
-        if (id is int) ids.add(id);
-      }
-      for (final r in laporanTah) {
+      for (final r in laporan) {
         final id = r['id_data_siswa'];
         if (id is int) ids.add(id);
       }
 
       final namaMap = await service.fetchNamaSiswaMap(ids.toList());
 
-      final summaryReg = buildSummaryCompletedJuz(
-        laporan: laporanReg,
-        jenisKelas: 'Reguler',
-        namaById: namaMap,
-      );
-
-      final summaryTah = buildSummaryCompletedJuz(
-        laporan: laporanTah,
-        jenisKelas: 'Tahfiz',
+      final summaryAll = buildSummaryCompletedJuz(
+        laporan: laporan,
         namaById: namaMap,
       );
 
       state = state.copyWith(
         loading: false,
         error: null,
-        summaryReguler: summaryReg,
-        summaryTahfiz: summaryTah,
+        summaryAll: summaryAll,
       );
     } catch (e) {
       state = state.copyWith(loading: false, error: e.toString());

@@ -113,7 +113,6 @@ class TasmiSummary {
 
 List<TasmiSummary> buildSummaryCompletedJuz({
   required List<Map<String, dynamic>> laporan,
-  required String jenisKelas,
   required Map<int, String> namaById,
 }) {
 

@@ -9,7 +9,8 @@ class GabungKelasPageGuru extends ConsumerStatefulWidget {
   const GabungKelasPageGuru({super.key});
 
   @override
-  ConsumerState<GabungKelasPageGuru> createState() => _GabungKelasPageGuruState();
+  ConsumerState<GabungKelasPageGuru> createState() =>
+      _GabungKelasPageGuruState();
 }
 
 class _GabungKelasPageGuruState extends ConsumerState<GabungKelasPageGuru> {
@@ -89,7 +90,9 @@ class _GabungKelasPageGuruState extends ConsumerState<GabungKelasPageGuru> {
 
               const SizedBox(height: 12),
 
-              if (st.idRuangKelas != null)
+              if (st.idRuangKelas != null &&
+                  st.guruList.isNotEmpty &&
+                  st.selectedIdDataGuru != null)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -120,7 +123,7 @@ class _GabungKelasPageGuruState extends ConsumerState<GabungKelasPageGuru> {
                                   content: Text('Berhasil gabung kelas!'),
                                 ),
                               );
-                              
+
                               Navigator.pushReplacement(
                                 context,
                                 MaterialPageRoute(

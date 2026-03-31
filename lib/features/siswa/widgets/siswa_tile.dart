@@ -34,8 +34,8 @@ class SiswaTile extends StatelessWidget {
 
         subtitle: Text(
           'NIS: ${s.nis}\n'
-          'JK: ${s.jenisKelamin} • Tahun Masuk: ${s.tahunMasuk} • Target Juz: ${s.jumlahJuz}\n'
-          'Status: ${s.isAktif ? 'Aktif' : 'Nonaktif'}',
+          'JK: ${s.jenisKelamin} • Tahun Masuk: ${s.tahunMasuk}\n'
+          'Target Juz: ${s.jumlahJuz} • Status: ${s.isAktif ? 'Aktif' : 'Nonaktif'}',
         ),
 
         trailing: selected

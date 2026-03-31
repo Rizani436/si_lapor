@@ -104,7 +104,6 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
 
               SummarySectionCard(
                 title: 'Reguler',
-                minWajib: 2,
                 memenuhi: st.memenuhiReguler,
                 belum: st.belumReguler,
                 items: st.summaryReguler,
@@ -113,7 +112,6 @@ class _LaporanKepSekPageState extends ConsumerState<LaporanKepSekPage> {
 
               SummarySectionCard(
                 title: 'Tahfiz',
-                minWajib: 3,
                 memenuhi: st.memenuhiTahfiz,
                 belum: st.belumTahfiz,
                 items: st.summaryTahfiz,

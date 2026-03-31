@@ -203,7 +203,7 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                               tahunMasuk: tahunMasukC.text.trim(),
                               tanggalLahir: tglLahir,
                               ketAktif: aktif ? 1 : 0,
-                              jumlahJuz: widget.existing?.jumlahJuz ?? 0,
+                              jumlahJuz: int.tryParse(jumlahJuzC.text.trim()) ?? 0,
                             );
 
                             final notifier = ref.read(

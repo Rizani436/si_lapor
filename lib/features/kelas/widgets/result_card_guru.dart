@@ -35,7 +35,7 @@ class ResultCardGuru extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Kelas ditemukan)',
+          'Kelas ditemukan',
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 10),
@@ -46,6 +46,7 @@ class ResultCardGuru extends StatelessWidget {
         const SizedBox(height: 8),
         if (st.guruList.isEmpty)
           const Text('Tidak ada data guru untuk dipilih.')
+          
         else
           ...st.guruList.map((s) {
             return RadioListTile<int>(

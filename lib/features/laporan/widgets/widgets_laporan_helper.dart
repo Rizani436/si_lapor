@@ -182,14 +182,12 @@ Widget oneField(String label, TextEditingController c) {
 
 class SummarySectionCard extends StatelessWidget {
   final String title;
-  final int minWajib;
   final int memenuhi;
   final int belum;
   final List<TasmiSummary> items;
 
   const SummarySectionCard({
     required this.title,
-    required this.minWajib,
     required this.memenuhi,
     required this.belum,
     required this.items,

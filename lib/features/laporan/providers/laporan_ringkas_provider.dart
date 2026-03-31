@@ -6,15 +6,13 @@ import '../../../core/utils/laporan_ringkas_helper.dart';
 
 final laporanRingkasDetailProvider = FutureProvider.family<
     Map<String, List<RingkasItem>>,
-    ({int idSiswa, int idKelas, DateTime start, DateTime end})>(
+    ({int idSiswa, int idKelas})>(
   (ref, q) async {
     final service = ref.read(laporanServiceProvider);
 
     final laporan = await service.getLaporanRange(
       idSiswa: q.idSiswa,
       idRuangKelas: q.idKelas,
-      start: q.start,
-      end: q.end,
     );
 
     return buildRingkasanDetail(laporan);
