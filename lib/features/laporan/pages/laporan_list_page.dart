@@ -309,28 +309,32 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildRingkas(title, items, pelapor),
+        if (title.contains('Tasmi')) ...[
+          _buildRingkasTasmi(title, items, pelapor),
+        ] else ...[
+          _buildRingkas(title, items, pelapor),
 
-        const SizedBox(height: 6),
+          const SizedBox(height: 6),
 
-        GestureDetector(
-          onTap: () {
-            setState(() {
-              _showDetail['$title $pelapor'] = !isOpen;
-            });
-          },
-          child: Text(
-            isOpen ? 'Sembunyikan detail' : 'Lihat detail',
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.primary,
-              fontWeight: FontWeight.w600,
+          GestureDetector(
+            onTap: () {
+              setState(() {
+                _showDetail['$title $pelapor'] = !isOpen;
+              });
+            },
+            child: Text(
+              isOpen ? 'Sembunyikan detail' : 'Lihat detail',
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
-        ),
 
-        if (isOpen) ...[
-          const SizedBox(height: 8),
-          _buildRingkasDetail(title, items),
+          if (isOpen) ...[
+            const SizedBox(height: 8),
+            _buildRingkasDetail(title, items),
+          ],
         ],
       ],
     );
@@ -393,8 +397,8 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
               data['murajaahOrangTua']!,
               'Orang Tua',
             ),
-            const Divider(height: 8),
-            _buildRingkasSection('Tasmi', data['tasmiOrangTua']!, 'Orang Tua'),
+            // const Divider(height: 8),
+            // _buildRingkasSection('Tasmi', data['tasmiOrangTua']!, 'Orang Tua'),
           ],
         );
       },
@@ -410,9 +414,10 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
 
     for (final item in items) {
       if (item.pelapor != pelapor) continue;
+      if (item.surah == null) continue;
       grouped
           .putIfAbsent(item.juz, () => {})
-          .putIfAbsent(item.surah, () => [])
+          .putIfAbsent(item.surah!, () => [])
           .add(item);
     }
 
@@ -431,11 +436,11 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
 
       surahMap.forEach((surah, list) {
         final minAyat = list
-            .map((e) => getAyatMin(e.ayat))
+            .map((e) => getAyatMin(e.ayat!))
             .reduce((a, b) => a < b ? a : b);
 
         final maxAyat = list
-            .map((e) => getAyatMax(e.ayat))
+            .map((e) => getAyatMax(e.ayat!))
             .reduce((a, b) => a > b ? a : b);
 
         final ayatText = minAyat == maxAyat ? '$minAyat' : '$minAyat-$maxAyat';
@@ -447,6 +452,51 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
           ),
         );
       });
+    });
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 6),
+        ...lines,
+      ],
+    );
+  }
+
+  Widget _buildRingkasTasmi(
+    String title,
+    List<RingkasItem> items,
+    String pelapor,
+  ) {
+    if (items.isEmpty) {
+      return Text('$title: -');
+    }
+
+    // Mengelompokkan berdasarkan Juz
+    final Map<int, List<RingkasItem>> grouped = {};
+
+    for (final item in items) {
+      if (item.pelapor != pelapor) continue;
+      grouped.putIfAbsent(item.juz, () => []).add(item);
+    }
+
+    if (grouped.isEmpty) return const SizedBox.shrink();
+
+    final lines = <Widget>[];
+
+    grouped.forEach((juz, itemsInJuz) {
+      final firstItem = itemsInJuz.first;
+
+      lines.add(
+        Padding(
+          padding: const EdgeInsets.only(left: 12, top: 4),
+
+          child: Text(
+            '• Juz $juz dengan Predikat: ${firstItem.predikat} pada tanggal: ${firstItem.tanggal}',
+          ),
+        ),
+      );
     });
 
     return Column(

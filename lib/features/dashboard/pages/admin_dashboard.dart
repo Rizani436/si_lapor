@@ -9,6 +9,8 @@ class AdminDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final dashboardAsync = ref.watch(dashboardCountProvider);
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
 
     return AppScaffold(
       title: 'Dashboard Admin',
@@ -25,33 +27,35 @@ class AdminDashboard extends ConsumerWidget {
                 await ref.refresh(dashboardCountProvider.future);
               },
               child: GridView.count(
-                physics: const AlwaysScrollableScrollPhysics(), // penting!
-                crossAxisCount: 2,
+                physics: const AlwaysScrollableScrollPhysics(),
+                // LOGIKA RESPONSIF: 4 kolom saat landscape, 2 saat portrait
+                crossAxisCount: isLandscape ? 4 : 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                childAspectRatio: 0.8,
+                // Rasio disesuaikan agar kotak tidak terlalu panjang ke bawah
+                childAspectRatio: isLandscape ? 1.1 : 0.8,
                 children: [
                   _DashboardCard(
                     title: 'Ruang Kelas',
-                    total: data['ruangkelas']!,
+                    total: data['ruangkelas'] ?? 0,
                     icon: Icons.meeting_room,
                     filterProvider: ruangkelasFilterProvider,
                   ),
                   _DashboardCard(
                     title: 'Data Siswa',
-                    total: data['datasiswa']!,
+                    total: data['datasiswa'] ?? 0,
                     icon: Icons.people,
                     filterProvider: datasiswaFilterProvider,
                   ),
                   _DashboardCard(
                     title: 'Data Guru',
-                    total: data['dataguru']!,
+                    total: data['dataguru'] ?? 0,
                     icon: Icons.person,
                     filterProvider: dataguruFilterProvider,
                   ),
                   _DashboardCard(
                     title: 'Profiles',
-                    total: data['profiles']!,
+                    total: data['profiles'] ?? 0,
                     icon: Icons.account_circle,
                     filterProvider: profilesFilterProvider,
                   ),
@@ -80,10 +84,11 @@ class _DashboardCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    // Gunakan watch agar widget rebuild saat filter berubah
     final selectedStatus = ref.watch(filterProvider);
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         gradient: const LinearGradient(
@@ -93,78 +98,98 @@ class _DashboardCard extends ConsumerWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 6),
+            color: const Color(0xFF27AE60).withOpacity(0.3),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          // Bagian Atas: Judul & Dropdown
           Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 title,
                 textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 14,
                 ),
               ),
-              const SizedBox(height: 8),
-              SizedBox(
-                width: 120,
-                height: 34,
+              const SizedBox(height: 10),
+              // Dropdown Styling
+              Container(
+                height: 32,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(
+                    0.9,
+                  ), // Sedikit transparan lebih modern
+                  borderRadius: BorderRadius.circular(10),
+                ),
                 child: DropdownButtonHideUnderline(
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
+                  child: DropdownButton<String>(
+                    value: selectedStatus,
+                    isExpanded: true,
+                    icon: const Icon(
+                      Icons.arrow_drop_down,
+                      size: 20,
+                      color: Colors.black87,
                     ),
-                    child: DropdownButton<String>(
-                      value: selectedStatus,
-                      isExpanded: true,
-                      isDense: true,
-                      style:
-                          const TextStyle(fontSize: 12, color: Colors.black),
-                      items: const [
-                        DropdownMenuItem(value: 'Semua', child: Text('Semua')),
-                        DropdownMenuItem(value: 'Aktif', child: Text('Aktif')),
-                        DropdownMenuItem(
-                          value: 'Tidak Aktif',
-                          child: Text('Nonaktif'),
-                        ),
-                      ],
-                      onChanged: (value) {
-                        ref
-                            .read(filterProvider.notifier)
-                            .setStatus(value!);
-                      },
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
                     ),
+                    items: const [
+                      DropdownMenuItem(value: 'Semua', child: Text('Semua')),
+                      DropdownMenuItem(value: 'Aktif', child: Text('Aktif')),
+                      DropdownMenuItem(
+                        value: 'Tidak Aktif',
+                        child: Text('Nonaktif'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        ref.read(filterProvider.notifier).setStatus(value);
+                      }
+                    },
                   ),
                 ),
               ),
             ],
           ),
+
+          // Bagian Bawah: Icon & Angka
           Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 40, color: Colors.white),
-              const SizedBox(height: 8),
-              Text(
-                total.toString(),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              Icon(icon, size: 36, color: Colors.white),
+              const SizedBox(height: 4),
+              FittedBox(
+                // Mencegah text overflow jika angka terlalu panjang
+                child: Text(
+                  total.toString(),
+                  style: const TextStyle(
+                    fontSize: 26,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              const SizedBox(height: 4),
               const Text(
                 'Total Data',
-                style: TextStyle(fontSize: 11, color: Colors.white70),
+                style: TextStyle(
+                  fontSize: 10,
+                  color: Colors.white70, // Menggunakan putih yang lebih soft
+                  letterSpacing: 0.5,
+                ),
               ),
             ],
           ),

@@ -5,6 +5,9 @@ import '../providers/isi_ruang_kelas_provider.dart';
 import 'edit_isi_kelas_page.dart';
 import '../../laporan/pages/laporan_siswa_list_page(guru).dart';
 import '../../siswa/providers/siswa_provider.dart';
+import '../../laporan/pages/laporan_semua_siswa_form_page.dart';
+import '../../siswa/data/siswa_service.dart';
+import '../../siswa/models/siswa_model.dart';
 
 class DetailKelasPage extends ConsumerStatefulWidget {
   final KelasModel? existing;
@@ -139,7 +142,8 @@ class _DetailKelasPageState extends ConsumerState<DetailKelasPage> {
                       if (idRuangKelas == null)
                         const Text('ID kelas tidak ditemukan.')
                       else
-                        ref.watch(isiRuangKelasNamaProvider(idRuangKelas))
+                        ref
+                            .watch(isiRuangKelasNamaProvider(idRuangKelas))
                             .when(
                               loading: () => const Center(
                                 child: Padding(
@@ -247,6 +251,37 @@ class _DetailKelasPageState extends ConsumerState<DetailKelasPage> {
                                             },
                                           );
                                         },
+                                      ),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton.icon(
+                                          icon: const Icon(Icons.add),
+                                          label: const Text(
+                                            'Buat Laporan Semua Siswa',
+                                          ),
+                                          onPressed:
+                                              (widget.existing == null ||
+                                                  siswas.isEmpty)
+                                              ? null
+                                              : () async {
+                                                  final changed =
+                                                      await Navigator.push<
+                                                        bool
+                                                      >(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                          builder: (_) =>
+                                                              LaporanSemuaSiswaFormPage(
+                                                                existing:
+                                                                    siswas,
+                                                                existingKelas:
+                                                                    widget
+                                                                        .existing!,
+                                                              ),
+                                                        ),
+                                                      );
+                                                },
+                                        ),
                                       ),
                                     ],
                                   ],

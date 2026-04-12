@@ -40,7 +40,7 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
   final Set<String> _openSections = {};
 
-  late final TextEditingController tahsinC;
+  // late final TextEditingController tahsinC;
   late final TextEditingController zJuzC;
   late final TextEditingController zSurahC;
   late final TextEditingController zAyatC;
@@ -49,9 +49,9 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
   late final TextEditingController mSurahC;
   late final TextEditingController mAyatC;
 
-  late final TextEditingController tJuzC;
-  late final TextEditingController tSurahC;
-  late final TextEditingController tAyatC;
+  // late final TextEditingController tJuzC;
+  // late final TextEditingController tSurahC;
+  // late final TextEditingController tAyatC;
 
   late final TextEditingController noteC;
 
@@ -65,7 +65,7 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
     selectedDate = DateTime.now();
 
-    tahsinC = TextEditingController();
+    // tahsinC = TextEditingController();
 
     zJuzC = TextEditingController();
     zSurahC = TextEditingController();
@@ -75,9 +75,9 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     mSurahC = TextEditingController();
     mAyatC = TextEditingController();
 
-    tJuzC = TextEditingController();
-    tSurahC = TextEditingController();
-    tAyatC = TextEditingController();
+    // tJuzC = TextEditingController();
+    // tSurahC = TextEditingController();
+    // tAyatC = TextEditingController();
 
     noteC = TextEditingController();
 
@@ -132,15 +132,15 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         ayat: mAyatC,
       );
 
-      fillJsaFromText(
-        text: row['tasmi']?.toString(),
-        juz: tJuzC,
-        surah: tSurahC,
-        ayat: tAyatC,
-      );
+      // fillJsaFromText(
+      //   text: row['tasmi']?.toString(),
+      //   juz: tJuzC,
+      //   surah: tSurahC,
+      //   ayat: tAyatC,
+      // );
 
       noteC.text = (row['note'] ?? '').toString();
-      tahsinC.text = (row['tahsin'] ?? '').toString();
+      // tahsinC.text = (row['tahsin'] ?? '').toString();
 
       bool hasJsa(
         TextEditingController a,
@@ -154,24 +154,24 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
       if (hasJsa(zJuzC, zSurahC, zAyatC)) _openSections.add('ziyadah');
       if (hasJsa(mJuzC, mSurahC, mAyatC)) _openSections.add('murajaah');
-      if (hasJsa(tJuzC, tSurahC, tAyatC)) _openSections.add('tasmi');
+      // if (hasJsa(tJuzC, tSurahC, tAyatC)) _openSections.add('tasmi');
       if (noteC.text.trim().isNotEmpty) _openSections.add('note');
-      if (tahsinC.text.trim().isNotEmpty) _openSections.add('tahsin');
+      // if (tahsinC.text.trim().isNotEmpty) _openSections.add('tahsin');
     }
   }
 
   @override
   void dispose() {
-    tahsinC.dispose();
+    // tahsinC.dispose();
     zJuzC.dispose();
     zSurahC.dispose();
     zAyatC.dispose();
     mJuzC.dispose();
     mSurahC.dispose();
     mAyatC.dispose();
-    tJuzC.dispose();
-    tSurahC.dispose();
-    tAyatC.dispose();
+    // tJuzC.dispose();
+    // tSurahC.dispose();
+    // tAyatC.dispose();
 
     super.dispose();
   }
@@ -231,9 +231,9 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       surah: mSurahC,
       ayat: mAyatC,
     ).trim();
-    final tasmi = buildJsaText(juz: tJuzC, surah: tSurahC, ayat: tAyatC).trim();
+    // final tasmi = buildJsaText(juz: tJuzC, surah: tSurahC, ayat: tAyatC).trim();
     final note = noteC.text.trim();
-    final tahsin = tahsinC.text.trim();
+    // final tahsin = tahsinC.text.trim();
 
     return {
       'id_ruang_kelas': idRuangKelas,
@@ -241,8 +241,8 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       'tanggal': tanggalStr,
       'ziyadah': ziyadah.isEmpty ? null : ziyadah,
       'murajaah': murajaah.isEmpty ? null : murajaah,
-      'tahsin': tahsin.isEmpty ? null : tahsin,
-      'tasmi': tasmi.isEmpty ? null : tasmi,
+      // 'tahsin': tahsin.isEmpty ? null : tahsin,
+      // 'tasmi': tasmi.isEmpty ? null : tasmi,
       'pr': null,
       'note': note.isEmpty ? null : note,
       'pelapor': 'Orang Tua',
@@ -273,13 +273,13 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       return (jj || ss || aa) && !(jj && ss && aa);
     }
 
-    if (_openSections.contains('tasmi') &&
-        isFilledPartially(tJuzC, tSurahC, tAyatC)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tasmi harus lengkap: Juz, Surah, Ayat')),
-      );
-      return;
-    }
+    // if (_openSections.contains('tasmi') &&
+    //     isFilledPartially(tJuzC, tSurahC, tAyatC)) {
+    //   ScaffoldMessenger.of(context).showSnackBar(
+    //     const SnackBar(content: Text('Tasmi harus lengkap: Juz, Surah, Ayat')),
+    //   );
+    //   return;
+    // }
 
     final payload = _buildPayload(
       idRuangKelas: idRuangKelas,
@@ -345,14 +345,14 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     final actionState = ref.watch(laporanActionProvider);
     final saving = actionState.isLoading;
 
-    final tasmiLama = ref.watch(
-      lastlaporan((
-        idSiswa: siswa!.idDataSiswa!.toString(),
-        idKelas: kelas!.idRuangKelas!.toString(),
-        program: 'tasmi',
-        pelapor: 'Orang Tua',
-      )),
-    );
+    // final tasmiLama = ref.watch(
+    //   lastlaporan((
+    //     idSiswa: siswa!.idDataSiswa!.toString(),
+    //     idKelas: kelas!.idRuangKelas!.toString(),
+    //     program: 'tasmi',
+    //     pelapor: 'Orang Tua',
+    //   )),
+    // );
     final ziyadahLama = ref.watch(
       lastlaporan((
         idSiswa: siswa!.idDataSiswa!.toString(),
@@ -369,7 +369,7 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         pelapor: 'Orang Tua',
       )),
     );
-    final dataTasmi = extractData(tasmiLama, 'tasmi');
+    // final dataTasmi = extractData(tasmiLama, 'tasmi');
     final dataZiyadah = extractData(ziyadahLama, 'ziyadah');
     final dataMurajaah = extractData(murajaahLama, 'murajaah');
 
@@ -447,44 +447,44 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                         spacing: 8,
                         runSpacing: 8,
                         children: [
-                          _sectionButton(
-                            'tasmi',
-                            'Tasmi',
-                            Icons.record_voice_over,
-                          ),
+                          // _sectionButton(
+                          //   'tasmi',
+                          //   'Tasmi',
+                          //   Icons.record_voice_over,
+                          // ),
                           _sectionButton(
                             'ziyadah',
                             'Ziyadah',
                             Icons.add_circle_outline,
                           ),
                           _sectionButton('murajaah', 'Murajaah', Icons.refresh),
-                          _sectionButton(
-                            'tahsin',
-                            'Tahsin',
-                            Icons.school_outlined,
-                          ),
+                          // _sectionButton(
+                          //   'tahsin',
+                          //   'Tahsin',
+                          //   Icons.school_outlined,
+                          // ),
                           _sectionButton('note', 'Note', Icons.note_alt),
                         ],
                       ),
 
                       const SizedBox(height: 12),
 
-                      if (_openSections.contains('tasmi')) ...[
-                        Text(
-                          'Tasmi Terakhir: ${dataTasmi != null ? 'Juz ${dataTasmi['juz']} | Surah ${dataTasmi['surah']} : ${dataTasmi['ayat']} pada tanggal ${dataTasmi['tanggal']}' : 'Belum ada laporan tasmi sebelumnya'}',
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                        jsaFields(
-                          'Tasmi',
-                          juz: tJuzC,
-                          surah: tSurahC,
-                          ayat: tAyatC,
-                        ),
-                        const SizedBox(height: 12),
-                      ],
+                      // if (_openSections.contains('tasmi')) ...[
+                      //   Text(
+                      //     'Tasmi Terakhir: ${dataTasmi != null ? 'Juz ${dataTasmi['juz']} | Surah ${dataTasmi['surah']} : ${dataTasmi['ayat']} pada tanggal ${dataTasmi['tanggal']}' : 'Belum ada laporan tasmi sebelumnya'}',
+                      //     style: TextStyle(
+                      //       fontStyle: FontStyle.italic,
+                      //       color: Colors.grey.shade600,
+                      //     ),
+                      //   ),
+                        // jsaFields(
+                        //   'Tasmi',
+                        //   juz: tJuzC,
+                        //   surah: tSurahC,
+                        //   ayat: tAyatC,
+                        // ),
+                      //   const SizedBox(height: 12),
+                      // ],
                       if (_openSections.contains('ziyadah')) ...[
                         Text(
                           'Ziyadah Terakhir: ${dataZiyadah != null ? 'Juz ${dataZiyadah['juz']} | Surah ${dataZiyadah['surah']} : ${dataZiyadah['ayat']} pada tanggal ${dataZiyadah['tanggal']}' : 'Belum ada laporan ziyadah sebelumnya'}',
@@ -519,10 +519,10 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                         const SizedBox(height: 12),
                       ],
 
-                      if (_openSections.contains('tahsin')) ...[
-                        oneField('Tahsin', tahsinC),
-                        const SizedBox(height: 12),
-                      ],
+                      // if (_openSections.contains('tahsin')) ...[
+                      //   oneField('Tahsin', tahsinC),
+                      //   const SizedBox(height: 12),
+                      // ],
                       if (_openSections.contains('note')) ...[
                         oneField('Note', noteC),
                         const SizedBox(height: 12),

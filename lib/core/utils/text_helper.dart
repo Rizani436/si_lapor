@@ -36,6 +36,38 @@ String buildJsaText({
   return lines.join('\n');
 }
 
+String buildJPText({
+  required TextEditingController juz,
+  required TextEditingController predikat,
+}) {
+  final j = juz.text.trim();
+  final p = predikat.text.trim();
+
+  final lines = <String>[];
+  if (j.isNotEmpty) lines.add('Juz: $j');
+  if (p.isNotEmpty) lines.add('Predikat: $p');
+
+  return lines.join('\n');
+}
+
+String buildJHMText({
+  required TextEditingController jilid,
+  required TextEditingController halaman,
+  required TextEditingController materi,
+}) {
+  final j = jilid.text.trim();
+  final h = halaman.text.trim();
+  final m = materi.text.trim();
+
+  final lines = <String>[];
+  if (j.isNotEmpty) lines.add('Jilid: $j');
+  if (h.isNotEmpty) lines.add('Halaman: $h');
+  if (m.isNotEmpty) lines.add('Materi: $m');
+
+  return lines.join('\n');
+}
+
+
 int getAyatMin(String ayat) {
   final nums = RegExp(
     r'\d+',
@@ -65,6 +97,7 @@ Map<String, dynamic>? extractData(
   String juz = '';
   String surah = '';
   String ayat = '';
+  String predikat = '';
 
   for (var line in lines) {
     if (line.startsWith('Juz:')) {
@@ -74,6 +107,9 @@ Map<String, dynamic>? extractData(
     } else if (line.startsWith('Ayat:')) {
       ayat = line.replaceFirst('Ayat:', '').trim();
     }
+    else if (line.startsWith('Predikat:')) {
+      predikat = line.replaceFirst('Predikat:', '').trim();
+    }
   }
 
 
@@ -82,6 +118,7 @@ Map<String, dynamic>? extractData(
     'juz': juz,
     'surah': surah,
     'ayat': ayat,
+    'predikat': predikat,
     'tanggal': laporan['tanggal'],
   }); 
 

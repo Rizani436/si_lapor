@@ -160,6 +160,201 @@ Widget jsaFields(
   );
 }
 
+Widget jpFields(
+  String title, {
+  required TextEditingController juz,
+  required TextEditingController predikat,
+}) {
+  int? juzVal = int.tryParse(juz.text.trim());
+  String? predikatVal =
+      [
+        'Mumtaz',
+        'Jayyid Jiddan',
+        'Jayyid',
+        'Maqbul',
+      ].contains(predikat.text.trim())
+      ? predikat.text.trim()
+      : null;
+
+  if (juzVal != null && (juzVal < 1 || juzVal > 30)) juzVal = null;
+
+  return StatefulBuilder(
+    builder: (context, setInner) {
+
+      void setJuz(int? v) {
+        setInner(() {
+          juzVal = v;
+          juz.text = v?.toString() ?? '';
+        });
+      }
+
+      void setPredikat(String? key) {
+        setInner(() {
+          predikatVal = key;
+          predikat.text = key == null ? '' : key;
+        });
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<int>(
+            value: juzVal,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: const InputDecoration(
+              labelText: 'Juz',
+              border: OutlineInputBorder(),
+            ),
+            items: allJuz()
+                .map((j) => DropdownMenuItem(value: j, child: Text('Juz $j')))
+                .toList(),
+            onChanged: (v) => setJuz(v),
+            validator: (v) {
+              if (v == null) return 'Pilih Juz';
+              if (v < 1 || v > 30) return 'Juz tidak valid';
+              return null;
+            },
+          ),
+          const SizedBox(height: 10),
+          DropdownButtonFormField<String>(
+            value: predikatVal,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: const InputDecoration(
+              labelText: 'Predikat',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              'Mumtaz',
+              'Jayyid Jiddan',
+              'Jayyid',
+              'Maqbul',
+            ].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+            onChanged: (juzVal == null) ? null : (v) => setPredikat(v),
+            validator: (v) {
+              if (juzVal == null) return null;
+              if (v == null) return 'Pilih Predikat';
+              return null;
+            },
+          ),
+          const SizedBox(height: 10),
+        ],
+      );
+    },
+  );
+}
+
+Widget jhmFields(
+  String title, {
+  required TextEditingController jilid,
+  required TextEditingController halaman,
+  required TextEditingController materi,
+}) {
+  String? jilidVal =
+      [
+        'Jilid 1',
+        'Jilid 2',
+        'Jilid 3',
+        'Jilid 4',
+      ].contains(jilid.text.trim())
+      ? jilid.text.trim()
+      : null;
+  String? halamanVal = halaman.text.trim().isEmpty ? null : halaman.text.trim();
+  String? materiVal = materi.text.trim().isEmpty ? null : materi.text.trim();
+
+
+  return StatefulBuilder(
+    builder: (context, setInner) {
+      void setJilid(String? key) {
+        setInner(() {
+          jilidVal = key;
+          jilid.text = key == null ? '' : key;
+        });
+      }
+
+      void setHalaman(String? key) {
+        setInner(() {
+          halamanVal = key;
+          halaman.text = key == null ? '' : key;
+        });
+      }
+
+      void setMateri(String? key) {
+        setInner(() {
+          materiVal = key;
+          materi.text = key == null ? '' : key;
+        });
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+
+          DropdownButtonFormField<String>(
+            value: jilidVal,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: const InputDecoration(
+              labelText: 'Jilid',
+              border: OutlineInputBorder(),
+            ),
+            items: [
+              'Jilid 1',
+              'Jilid 2',
+              'Jilid 3',
+              'Jilid 4',
+            ].map((p) => DropdownMenuItem(value: p, child: Text(p))).toList(),
+            onChanged: (v) => setJilid(v),
+          ),
+
+          const SizedBox(height: 10),
+
+          TextFormField(
+            controller: halaman,
+            keyboardType: TextInputType.text,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: const InputDecoration(
+              labelText: 'Halaman',
+              hintText: 'Contoh: 7 atau 1-7',
+              border: OutlineInputBorder(),
+            ),
+            validator: (_) {
+              if (jilidVal == null) return null;
+
+              final raw = halaman.text.trim();
+              if (raw.isEmpty) return 'Halaman wajib diisi';
+
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 10),
+          TextFormField(
+            controller: materi,
+            keyboardType: TextInputType.text,
+            autovalidateMode: AutovalidateMode.onUserInteraction,
+            decoration: const InputDecoration(
+              labelText: 'Materi',
+              hintText: 'Angka Arab 1-100',
+              border: OutlineInputBorder(),
+            ),
+            validator: (_) {
+              if (jilidVal == null || halamanVal == null) return null;
+
+              final raw = materi.text.trim();
+              if (raw.isEmpty) return 'Materi wajib diisi';
+
+              return null;
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 Widget oneField(String label, TextEditingController c) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,

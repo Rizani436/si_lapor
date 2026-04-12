@@ -10,7 +10,6 @@ import '../../features/device/fcm_service.dart';
 
 import '../../features/notifications/providers/notifikasi_provider.dart';
 
-
 class AppScaffold extends ConsumerWidget {
   final String title;
   final Widget body;
@@ -34,7 +33,7 @@ class AppScaffold extends ConsumerWidget {
         ];
       case 'kepsek':
         return [
-          _MenuItem('Laporan', '/kepsek/laporan'),
+          _MenuItem('Rekap Laporan', '/kepsek/laporan'),
           _MenuItem('Profile', '/profile'),
         ];
       case 'parent':
@@ -84,6 +83,7 @@ class AppScaffold extends ConsumerWidget {
     final netAsync = ref.watch(netStatusProvider);
 
     return Scaffold(
+      extendBodyBehindAppBar: true,
       drawer: Drawer(
         child: SafeArea(
           child: Column(
@@ -254,6 +254,7 @@ class AppScaffold extends ConsumerWidget {
 
       body: Column(
         children: [
+          SizedBox(height: MediaQuery.of(context).padding.top + kToolbarHeight),
           netAsync.when(
             data: (net) {
               if (net == NetStatus.online) return const SizedBox.shrink();

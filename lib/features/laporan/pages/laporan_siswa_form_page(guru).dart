@@ -42,7 +42,8 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
   final Set<String> _openSections = {};
 
-  late final TextEditingController tahsinC;
+  late final TextEditingController tasmiJuzC;
+  late final TextEditingController tasmiPredikatC;
   late final TextEditingController zJuzC;
   late final TextEditingController zSurahC;
   late final TextEditingController zAyatC;
@@ -51,9 +52,9 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
   late final TextEditingController mSurahC;
   late final TextEditingController mAyatC;
 
-  late final TextEditingController tJuzC;
-  late final TextEditingController tSurahC;
-  late final TextEditingController tAyatC;
+  late final TextEditingController tJilidC;
+  late final TextEditingController tHalamanC;
+  late final TextEditingController tMateriC;
 
   late final TextEditingController prC;
   late final TextEditingController noteC;
@@ -68,8 +69,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
     selectedDate = DateTime.now();
 
-    tahsinC = TextEditingController();
-
     zJuzC = TextEditingController();
     zSurahC = TextEditingController();
     zAyatC = TextEditingController();
@@ -78,9 +77,11 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     mSurahC = TextEditingController();
     mAyatC = TextEditingController();
 
-    tJuzC = TextEditingController();
-    tSurahC = TextEditingController();
-    tAyatC = TextEditingController();
+    tasmiJuzC = TextEditingController();
+    tasmiPredikatC = TextEditingController();
+    tJilidC = TextEditingController();
+    tHalamanC = TextEditingController();
+    tMateriC = TextEditingController();
 
     prC = TextEditingController();
     noteC = TextEditingController();
@@ -122,6 +123,49 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         }
       }
 
+      void fillJPFromText({
+        required String? text,
+        required TextEditingController juz,
+        required TextEditingController predikat,
+      }) {
+        final s = (text ?? '').toString().trim();
+        if (s.isEmpty) return;
+
+        for (final raw in s.split('\n')) {
+          final line = raw.trim();
+          final lower = line.toLowerCase();
+
+          if (lower.startsWith('juz:')) {
+            juz.text = line.substring(4).trim();
+          } else if (lower.startsWith('predikat:')) {
+            predikat.text = line.substring(9).trim();
+          }
+        }
+      }
+
+      void fillJHMFromText({
+        required String? text,
+        required TextEditingController jilid,
+        required TextEditingController halaman,
+        required TextEditingController materi,
+      }) {
+        final s = (text ?? '').toString().trim();
+        if (s.isEmpty) return;
+
+        for (final raw in s.split('\n')) {
+          final line = raw.trim();
+          final lower = line.toLowerCase();
+
+          if (lower.startsWith('jilid:')) {
+            jilid.text = line.substring(6).trim();
+          } else if (lower.startsWith('halaman:')) {
+            halaman.text = line.substring(8).trim();
+          } else if (lower.startsWith('materi:')) {
+            materi.text = line.substring(7).trim();
+          }
+        }
+      }
+
       fillJsaFromText(
         text: row['ziyadah']?.toString(),
         juz: zJuzC,
@@ -136,16 +180,20 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
         ayat: mAyatC,
       );
 
-      fillJsaFromText(
+      fillJPFromText(
         text: row['tasmi']?.toString(),
-        juz: tJuzC,
-        surah: tSurahC,
-        ayat: tAyatC,
+        juz: tasmiJuzC,
+        predikat: tasmiPredikatC,
       );
 
       prC.text = (row['pr'] ?? '').toString();
       noteC.text = (row['note'] ?? '').toString();
-      tahsinC.text = (row['tahsin'] ?? '').toString();
+      fillJHMFromText(
+        text: row['tahsin']?.toString(),
+        jilid: tJilidC,
+        halaman: tHalamanC,
+        materi: tMateriC,
+      );
 
       bool hasJsa(
         TextEditingController a,
@@ -157,27 +205,42 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
             c.text.trim().isNotEmpty;
       }
 
+      bool hasJP(TextEditingController a, TextEditingController b) {
+        return a.text.trim().isNotEmpty || b.text.trim().isNotEmpty;
+      }
+
+      bool hasJHM(
+        TextEditingController a,
+        TextEditingController b,
+        TextEditingController c,
+      ) {
+        return a.text.trim().isNotEmpty ||
+            b.text.trim().isNotEmpty ||
+            c.text.trim().isNotEmpty;
+      }
+
       if (hasJsa(zJuzC, zSurahC, zAyatC)) _openSections.add('ziyadah');
       if (hasJsa(mJuzC, mSurahC, mAyatC)) _openSections.add('murajaah');
-      if (hasJsa(tJuzC, tSurahC, tAyatC)) _openSections.add('tasmi');
+      if (hasJP(tasmiJuzC, tasmiPredikatC)) _openSections.add('tasmi');
       if (prC.text.trim().isNotEmpty) _openSections.add('pr');
       if (noteC.text.trim().isNotEmpty) _openSections.add('note');
-      if (tahsinC.text.trim().isNotEmpty) _openSections.add('tahsin');
+      if (hasJHM(tJilidC, tHalamanC, tMateriC)) _openSections.add('tahsin');
     }
   }
 
   @override
   void dispose() {
-    tahsinC.dispose();
+    tasmiJuzC.dispose();
+    tasmiPredikatC.dispose();
     zJuzC.dispose();
     zSurahC.dispose();
     zAyatC.dispose();
     mJuzC.dispose();
     mSurahC.dispose();
     mAyatC.dispose();
-    tJuzC.dispose();
-    tSurahC.dispose();
-    tAyatC.dispose();
+    tJilidC.dispose();
+    tHalamanC.dispose();
+    tMateriC.dispose();
     prC.dispose();
 
     super.dispose();
@@ -238,10 +301,14 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       surah: mSurahC,
       ayat: mAyatC,
     ).trim();
-    final tasmi = buildJsaText(juz: tJuzC, surah: tSurahC, ayat: tAyatC).trim();
+    final tasmi = buildJPText(juz: tasmiJuzC, predikat: tasmiPredikatC).trim();
     final pr = prC.text.trim();
     final note = noteC.text.trim();
-    final tahsin = tahsinC.text.trim();
+    final tahsin = buildJHMText(
+      jilid: tJilidC,
+      halaman: tHalamanC,
+      materi: tMateriC,
+    ).trim();
 
     return {
       'id_ruang_kelas': idRuangKelas,
@@ -266,25 +333,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     if (idDataSiswa == null || idRuangKelas == null || tanggalStr == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data siswa/kelas/tanggal belum lengkap')),
-      );
-      return;
-    }
-
-    bool isFilledPartially(
-      TextEditingController j,
-      TextEditingController s,
-      TextEditingController a,
-    ) {
-      final jj = j.text.trim().isNotEmpty;
-      final ss = s.text.trim().isNotEmpty;
-      final aa = a.text.trim().isNotEmpty;
-      return (jj || ss || aa) && !(jj && ss && aa);
-    }
-
-    if (_openSections.contains('tasmi') &&
-        isFilledPartially(tJuzC, tSurahC, tAyatC)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tasmi harus lengkap: Juz, Surah, Ayat')),
       );
       return;
     }
@@ -348,47 +396,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     }
   }
 
-  List<Map<String, dynamic>> ringkasAyat(List<RingkasItem> items) {
-    final Map<String, List<Map<String, dynamic>>> grouped = {};
-
-    for (final item in items) {
-      final key = '${item.juz}-${item.surah}';
-
-      grouped.putIfAbsent(key, () => []).add({
-        'juz': item.juz,
-        'surah': item.surah,
-        'minAyat': getAyatMin(item.ayat),
-        'maxAyat': getAyatMax(item.ayat),
-      });
-    }
-
-    final List<Map<String, dynamic>> result = [];
-
-    for (final ranges in grouped.values) {
-      ranges.sort(
-        (a, b) => (a['minAyat'] as int).compareTo(b['minAyat'] as int),
-      );
-
-      var current = Map<String, dynamic>.from(ranges.first);
-
-      for (int i = 1; i < ranges.length; i++) {
-        final next = ranges[i];
-
-        if (next['minAyat'] <= current['maxAyat'] + 1) {
-          current['maxAyat'] = (next['maxAyat'] > current['maxAyat'])
-              ? next['maxAyat']
-              : current['maxAyat'];
-        } else {
-          result.add(current);
-          current = Map<String, dynamic>.from(next);
-        }
-      }
-
-      result.add(current);
-    }
-
-    return result;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -521,17 +528,16 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
 
                       if (_openSections.contains('tasmi')) ...[
                         Text(
-                          'Tasmi Terakhir: ${dataTasmi != null ? 'Juz ${dataTasmi['juz']} | Surah ${dataTasmi['surah']} : ${dataTasmi['ayat']} pada tanggal ${dataTasmi['tanggal']}' : 'Belum ada laporan tasmi sebelumnya'}',
+                          'Tasmi Terakhir: ${dataTasmi != null ? 'Juz ${dataTasmi['juz']} | Predikat: ${dataTasmi['predikat']} pada tanggal ${dataTasmi['tanggal']}' : 'Belum ada laporan tasmi sebelumnya'}',
                           style: TextStyle(
                             fontStyle: FontStyle.italic,
                             color: Colors.grey.shade600,
                           ),
                         ),
-                        jsaFields(
+                        jpFields(
                           'Tasmi',
-                          juz: tJuzC,
-                          surah: tSurahC,
-                          ayat: tAyatC,
+                          juz: tasmiJuzC,
+                          predikat: tasmiPredikatC,
                         ),
                         const SizedBox(height: 12),
                       ],
@@ -570,8 +576,14 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                       ],
 
                       if (_openSections.contains('tahsin')) ...[
-                        oneField('Tahsin', tahsinC),
-                        const SizedBox(height: 12),
+                        jhmFields(
+                          'Tahsin',
+                          jilid: tJilidC,
+                          halaman: tHalamanC,
+                          materi: tMateriC,
+                        ),
+                        //   oneField('Tahsin', tahsinC),
+                          const SizedBox(height: 12),
                       ],
                       if (_openSections.contains('pr')) ...[
                         oneField('PR', prC),

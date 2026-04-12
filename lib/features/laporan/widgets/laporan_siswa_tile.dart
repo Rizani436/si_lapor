@@ -76,7 +76,7 @@ class LaporanSiswaTile extends StatelessWidget {
             if (ziyadah != null) _section('Ziyadah', ziyadah, multiline: true),
             if (murajaah != null)
               _section('Murajaah', murajaah, multiline: true),
-            if (tahsin != null) _section('Tahsin', tahsin),
+            if (tahsin != null) _section('Tahsin', tahsin, multiline: true),
             if (tasmi != null) _section('Tasmi', tasmi, multiline: true),
             if (pr != null) Text('PR: $pr'),
             if (note != null) _section('Note', note, multiline: true),
