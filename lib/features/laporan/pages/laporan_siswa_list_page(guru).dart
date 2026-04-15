@@ -845,6 +845,10 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
 
               const SizedBox(height: 14),
               SegmentedButton<LaporanViewMode>(
+                style: SegmentedButton.styleFrom(
+                    selectedBackgroundColor: const Color(0xFF27AE60),
+                    selectedForegroundColor: Colors.white,
+                  ),
                 segments: const [
                   ButtonSegment(
                     value: LaporanViewMode.harian,
@@ -865,6 +869,7 @@ class _LaporanSiswaListPageState extends ConsumerState<LaporanSiswaListPage> {
               const SizedBox(height: 14),
               Card(
                 child: Padding(
+                  
                   padding: const EdgeInsets.all(14),
                   child: _viewMode == LaporanViewMode.harian
                       ? _buildLaporanHarian(

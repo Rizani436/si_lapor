@@ -1,14 +1,11 @@
+import 'dart:ffi';
+
 import '../utils/juz_map.dart';
 
 class TasmiPoint {
   final int juz;
-  final String surahKey;
-  final int ayat;
-  const TasmiPoint({
-    required this.juz,
-    required this.surahKey,
-    required this.ayat,
-  });
+  final String predikat;
+  const TasmiPoint({required this.juz, required this.predikat});
 }
 
 int? parseAyatMax(String raw) {
@@ -35,64 +32,17 @@ TasmiPoint? parseTasmiPoint(String? tasmi) {
     r'juz\s*:\s*(\d+)',
     caseSensitive: false,
   ).firstMatch(tasmi);
-  final mSurah = RegExp(
-    r'surah\s*:\s*([^\n\r]+?)(?=\s+ayat\s*:|$)',
+  if (mJuz == null) return null;
+
+  final mPredikat = RegExp(
+    r'predikat\s*:\s*([^\n\r]+?)(?=\s+ayat\s*:|$)',
     caseSensitive: false,
   ).firstMatch(tasmi);
 
-  final mAyat = RegExp(
-    r'ayat\s*:\s*([0-9\-\s]+)',
-    caseSensitive: false,
-  ).firstMatch(tasmi);
-
-  if (mJuz == null || mSurah == null || mAyat == null) return null;
-
-  final juz = int.tryParse(mJuz.group(1)!);
+  final juz = int.tryParse(mJuz!.group(1)!);
   if (juz == null) return null;
-
-  final surahRaw = mSurah.group(1)!.trim();
-  final surahKey = normSurah(surahRaw);
-
-  final ayatRaw = mAyat.group(1)!.trim();
-  final ayat = parseAyatMax(ayatRaw);
-  if (ayat == null) return null;
-
-  return TasmiPoint(juz: juz, surahKey: surahKey, ayat: ayat);
-}
-
-class JuzPosition {
-  final int segIndex;
-  final int ayat;
-  const JuzPosition(this.segIndex, this.ayat);
-}
-
-JuzPosition? toJuzPosition(TasmiPoint p) {
-  final segs = juzMap[p.juz];
-  if (segs == null) return null;
-
-  for (int i = 0; i < segs.length; i++) {
-    final seg = segs[i];
-    if (seg.surahKey == p.surahKey) {
-      final a = p.ayat.clamp(seg.startAyat, seg.endAyat);
-      return JuzPosition(i, a);
-    }
-  }
-  return null;
-}
-
-int comparePos(JuzPosition a, JuzPosition b) {
-  if (a.segIndex != b.segIndex) return a.segIndex.compareTo(b.segIndex);
-  return a.ayat.compareTo(b.ayat);
-}
-
-bool isJuzCompleted(int juz, JuzPosition furthest) {
-  final segs = juzMap[juz];
-  if (segs == null || segs.isEmpty) return false;
-
-  final lastIndex = segs.length - 1;
-  final lastSeg = segs[lastIndex];
-
-  return furthest.segIndex == lastIndex && furthest.ayat >= lastSeg.endAyat;
+  final predikat = mPredikat != null ? mPredikat.group(1)!.trim() : '';
+  return TasmiPoint(juz: juz, predikat: predikat);
 }
 
 class TasmiSummary {
@@ -115,8 +65,7 @@ List<TasmiSummary> buildSummaryCompletedJuz({
   required List<Map<String, dynamic>> laporan,
   required Map<int, String> namaById,
 }) {
-
-  final Map<int, Map<int, JuzPosition>> furthestBySiswa = {};
+  final Map<int, Map<int, String>> furthestBySiswa = {};
 
   for (final row in laporan) {
     final id = row['id_data_siswa'];
@@ -125,15 +74,12 @@ List<TasmiSummary> buildSummaryCompletedJuz({
     final p = parseTasmiPoint(row['tasmi'] as String?);
     if (p == null) continue;
 
-    final pos = toJuzPosition(p);
-    if (pos == null) continue;
-
     final juzMapSiswa = (furthestBySiswa[id] ??= {});
     final prev = juzMapSiswa[p.juz];
 
-    if (prev == null || comparePos(prev, pos) < 0) {
-      juzMapSiswa[p.juz] = pos;
-    }
+    furthestBySiswa[id]![p.juz] = p.predikat.isNotEmpty
+        ? p.predikat
+        : (prev ?? '');
   }
 
   final result = <TasmiSummary>[];
@@ -153,15 +99,18 @@ List<TasmiSummary> buildSummaryCompletedJuz({
       }
       return MapEntry(key, 0);
     });
-
+    final sortedEntries = furthestByJuz.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    final dahSelesai = <int>[];
+    final dahSelesaiPredikat = <String>[];
+    sortedEntries.map((e) => dahSelesai.add(e.key)).toList();
+    sortedEntries.map((e) => dahSelesaiPredikat.add(e.value)).toList();
     final selesai = <int>[];
-
-    furthestByJuz.forEach((juz, pos) {
-      if (isJuzCompleted(juz, pos)) selesai.add(juz);
-    });
-
-    selesai.sort();
-
+    if (wajib[idSiswa] != null && wajib[idSiswa]! < dahSelesai.length) {
+      selesai.addAll(dahSelesai.sublist(0, wajib[idSiswa]!));
+    } else {
+      selesai.addAll(dahSelesai);
+    }
     result.add(
       TasmiSummary(
         idDataSiswa: idSiswa,

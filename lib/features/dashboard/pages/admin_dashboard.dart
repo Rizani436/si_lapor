@@ -28,11 +28,11 @@ class AdminDashboard extends ConsumerWidget {
               },
               child: GridView.count(
                 physics: const AlwaysScrollableScrollPhysics(),
-                // LOGIKA RESPONSIF: 4 kolom saat landscape, 2 saat portrait
+               
                 crossAxisCount: isLandscape ? 4 : 2,
                 crossAxisSpacing: 12,
                 mainAxisSpacing: 12,
-                // Rasio disesuaikan agar kotak tidak terlalu panjang ke bawah
+
                 childAspectRatio: isLandscape ? 1.1 : 0.8,
                 children: [
                   _DashboardCard(
@@ -84,7 +84,7 @@ class _DashboardCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // Gunakan watch agar widget rebuild saat filter berubah
+
     final selectedStatus = ref.watch(filterProvider);
 
     return Container(
@@ -107,7 +107,6 @@ class _DashboardCard extends ConsumerWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          // Bagian Atas: Judul & Dropdown
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -123,14 +122,13 @@ class _DashboardCard extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              // Dropdown Styling
               Container(
                 height: 32,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(
                     0.9,
-                  ), // Sedikit transparan lebih modern
+                  ), 
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: DropdownButtonHideUnderline(
@@ -166,14 +164,12 @@ class _DashboardCard extends ConsumerWidget {
             ],
           ),
 
-          // Bagian Bawah: Icon & Angka
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 36, color: Colors.white),
               const SizedBox(height: 4),
               FittedBox(
-                // Mencegah text overflow jika angka terlalu panjang
                 child: Text(
                   total.toString(),
                   style: const TextStyle(
@@ -187,7 +183,7 @@ class _DashboardCard extends ConsumerWidget {
                 'Total Data',
                 style: TextStyle(
                   fontSize: 10,
-                  color: Colors.white70, // Menggunakan putih yang lebih soft
+                  color: Colors.white70,
                   letterSpacing: 0.5,
                 ),
               ),

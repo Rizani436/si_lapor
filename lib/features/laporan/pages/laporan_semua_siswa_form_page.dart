@@ -26,10 +26,12 @@ class LaporanSiswaInput {
     return OutlinedButton.icon(
       onPressed: () => onToggle(key),
       icon: Icon(icon, size: 18),
-      label: Text(label),
       style: OutlinedButton.styleFrom(
-        backgroundColor: active ? Colors.grey.shade200 : null,
+        foregroundColor: active ?  Colors.white : Color(0xFF27AE60) ,
+        side: const BorderSide(color: Colors.white),
+        backgroundColor: active ? const Color(0xFF27AE60)  : Colors.white,
       ),
+      label: Text(label),
     );
   }
 
@@ -292,7 +294,6 @@ class _LaporanSemuaSiswaFormPageState
   Widget build(BuildContext context) {
     final saving = ref.watch(laporanActionProvider).isLoading;
 
-    // JIKA DATA MASIH LOADING
     if (_isLoadingData) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -337,12 +338,12 @@ class _LaporanSemuaSiswaFormPageState
                 trailing: ElevatedButton(
                   onPressed: _pickDate,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFC9DCAA),
+                    backgroundColor: const Color(0xFF27AE60),
                     elevation: 0,
                   ),
                   child: const Text(
                     'Pilih',
-                    style: TextStyle(color: Colors.black),
+                    style: TextStyle(color: Colors.white),
                   ),
                 ),
               ),

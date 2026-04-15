@@ -20,27 +20,27 @@ class AppScaffold extends ConsumerWidget {
     switch (role) {
       case 'admin':
         return [
-          _MenuItem('Kelola Akun', '/admin/akun'),
-          _MenuItem('Kelola Siswa', '/admin/siswa'),
-          _MenuItem('Kelola Guru', '/admin/guru'),
-          _MenuItem('Kelola Kelas', '/admin/kelas'),
-          _MenuItem('Profile', '/profile'),
+          _MenuItem('Kelola Akun', '/admin/akun', Icons.manage_accounts),
+          _MenuItem('Kelola Siswa', '/admin/siswa', Icons.people),
+          _MenuItem('Kelola Guru', '/admin/guru', Icons.school),
+          _MenuItem('Kelola Kelas', '/admin/kelas', Icons.class_rounded),
+          _MenuItem('Profile', '/profile', Icons.account_circle),
         ];
       case 'guru':
         return [
-          _MenuItem('Kelas Al-Qur\'an', '/guru/kelas'),
-          _MenuItem('Profile', '/profile'),
+          _MenuItem('Kelas Al-Qur\'an', '/guru/kelas', Icons.class_rounded),
+          _MenuItem('Profile', '/profile', Icons.account_circle),
         ];
       case 'kepsek':
         return [
-          _MenuItem('Rekap Laporan', '/kepsek/laporan'),
-          _MenuItem('Profile', '/profile'),
+          _MenuItem('Rekap Laporan', '/kepsek/laporan', Icons.assignment),
+          _MenuItem('Profile', '/profile', Icons.account_circle),
         ];
       case 'parent':
       default:
         return [
-          _MenuItem('Kelas Al-Qur\'an', '/parent/kelas'),
-          _MenuItem('Profile', '/profile'),
+          _MenuItem('Kelas Al-Qur\'an', '/parent/kelas', Icons.class_rounded),
+          _MenuItem('Profile', '/profile', Icons.account_circle),
         ];
     }
   }
@@ -85,16 +85,24 @@ class AppScaffold extends ConsumerWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       drawer: Drawer(
-        child: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+        child: Column(
+          children: [
+            Container(
+              width:
+                  double.infinity,
+              color: const Color(0xFF27AE60),
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  MediaQuery.of(context).padding.top,
+                  16,
+                  16,
+                ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 28,
-                      backgroundColor: Colors.grey.shade300,
+                      backgroundColor: Colors.white.withOpacity(0.2),
                       child: ClipOval(
                         child: (fotoProfileUrl != null)
                             ? Image.network(
@@ -129,20 +137,24 @@ class AppScaffold extends ConsumerWidget {
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
+                              color: Colors.white,
                             ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Menu (${role.toUpperCase()})',
-                            style: const TextStyle(fontSize: 13),
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Colors.white.withOpacity(0.8),
+                            ),
                           ),
                           if (userId.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(
                               userId,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.grey,
+                                color: Colors.white.withOpacity(0.6),
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -154,34 +166,61 @@ class AppScaffold extends ConsumerWidget {
                   ],
                 ),
               ),
-              const Divider(),
-              Expanded(
-                child: ListView(
+            ),
+            Expanded(
+              child: Container(
+          
+                color: const Color(0xFFF5F8EC),
+                child: Column(
                   children: [
-                    for (final item in menu)
-                      ListTile(
-                        title: Text(item.title),
-                        trailing: const Text(
-                          '>',
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                        onTap: () => _navTo(item.route),
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets
+                            .zero, 
+                        children: [
+                          for (final item in menu)
+                            ListTile(
+                              title: Text(
+                                item.title,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
+                                ),
+                              ),
+                              trailing: const Icon(
+                                Icons.chevron_right,
+                                color: Colors.grey,
+                              ),
+                              onTap: () => _navTo(item.route),
+                            ),
+                        ],
                       ),
+                    ),
+
+                    const Divider(height: 1),
+                    ListTile(
+                      leading: const Icon(
+                        Icons.logout,
+                        color: Colors.redAccent,
+                      ),
+                      title: const Text(
+                        'Logout',
+                        style: TextStyle(
+                          color: Colors.redAccent,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      trailing: const Icon(
+                        Icons.chevron_right,
+                        color: Colors.grey,
+                      ),
+                      onTap: () => _logout(ref),
+                    ),
                   ],
                 ),
               ),
-              const Divider(),
-              ListTile(
-                leading: const Icon(Icons.logout),
-                title: const Text('Logout'),
-                trailing: const Text(
-                  '>',
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                onTap: () => _logout(ref),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       appBar: AppBar(
@@ -298,5 +337,6 @@ class AppScaffold extends ConsumerWidget {
 class _MenuItem {
   final String title;
   final String route;
-  _MenuItem(this.title, this.route);
+  final IconData icon;
+  _MenuItem(this.title, this.route, this.icon);
 }

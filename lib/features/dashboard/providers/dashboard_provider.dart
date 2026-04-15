@@ -6,7 +6,7 @@ import '../../../core/session/session_provider.dart';
 import '../../kelas/data/kelas_service.dart';
 import '../models/teacher_dashboard_model.dart';
 import '../models/parent_dashboard_model.dart';
-
+import '../models/kepsek_dashboard_model.dart';
 
 final supabaseClientProvider = Provider<SupabaseClient>((ref) {
   return Supabase.instance.client;
@@ -77,6 +77,18 @@ final teacherDashboardProvider = FutureProvider<List<TeacherDashboardItem>>((
 
   return service.getDashboardGuru(user.id);
 });
+
+final kepsekDashboardProvider =
+    FutureProvider.family<
+      List<KepsekDashboardItem>,
+      ({String tahun, int semester})
+    >((
+      ref,
+      arg, 
+    ) async {
+      final service = ref.read(dashboardServiceProvider);
+      return service.getDashboardKepsek(arg.tahun, arg.semester);
+    });
 
 final siswaDashboardProvider = FutureProvider<List<ParentDashboardItem>>((
   ref,

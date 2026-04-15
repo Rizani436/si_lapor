@@ -56,6 +56,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Color(0xFF27AE60)
                   ),
                   onPressed: () =>
                       setState(() => obscurePassword = !obscurePassword),

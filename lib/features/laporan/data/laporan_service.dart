@@ -57,6 +57,20 @@ class LaporanService {
       return List<Map<String, dynamic>>.from(res);
     }, 'Gagal mengambil daftar laporan');
   }
+  Future<List<Map<String, dynamic>>> getLaporanSeluruh({
+    required int idSiswa,
+  }) async {
+    return networkGuard(() async {
+
+      final res = await sb
+          .from('laporan')
+          .select()
+          .eq('id_data_siswa', idSiswa)
+          .order('tanggal');
+
+      return List<Map<String, dynamic>>.from(res);
+    }, 'Gagal mengambil daftar laporan');
+  }
 
   Future<List<Map<String, dynamic>>> getLaporan10({
     required int idSiswa,

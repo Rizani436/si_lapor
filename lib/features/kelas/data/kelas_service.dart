@@ -198,6 +198,57 @@ class KelasService {
     );
   }
 
+  Future<List<KelasModel>> getAllTPdS(String tahunPelajaran, int semester) async {
+    return networkGuard(
+      () async {
+   final cekRes = await _db
+    .from('isiruangkelas')
+    .select('''
+      id_ruang_kelas,
+      ruangkelas!inner (
+        id_ruang_kelas,
+        kelasalquran!inner (
+          tahun_pelajaran,
+          semester
+        )
+      )
+    ''')
+    .eq('ruangkelas.kelasalquran.tahun_pelajaran', tahunPelajaran)
+    .eq('ruangkelas.kelasalquran.semester', semester);
+
+    final cek = (cekRes as List).cast<Map<String, dynamic>>();
+    if (cek.isEmpty) return [];
+
+    final ids = cek
+        .map((e) => e['id_ruang_kelas'])
+        .where((v) => v != null)
+        .toList();
+
+    if (ids.isEmpty) return [];
+
+    final res = await _db
+        .from('ruangkelas')
+        .select('''
+        id_ruang_kelas,
+        id_kelas,
+        kode_kelas,
+        ket_aktif,
+        kelasalquran (
+          nama_kelas,
+          tahun_pelajaran,
+          semester,
+          jenis_kelas
+        )
+      ''')
+        .filter('id_ruang_kelas', 'in', '(${ids.join(',')})')
+        .order('kode_kelas', ascending: true);
+
+    final list = (res as List).cast<Map<String, dynamic>>();
+    return list.map(KelasModel.fromJson).toList();},
+      'Gagal mengambil daftar kelas',
+    );
+  }
+
   Future<List<KelasModel>> getAllMySiswa(String id_user_siswa) async {
     return networkGuard(
       () async {

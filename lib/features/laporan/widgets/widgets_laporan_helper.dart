@@ -180,7 +180,6 @@ Widget jpFields(
 
   return StatefulBuilder(
     builder: (context, setInner) {
-
       void setJuz(int? v) {
         setInner(() {
           juzVal = v;
@@ -252,17 +251,11 @@ Widget jhmFields(
   required TextEditingController materi,
 }) {
   String? jilidVal =
-      [
-        'Jilid 1',
-        'Jilid 2',
-        'Jilid 3',
-        'Jilid 4',
-      ].contains(jilid.text.trim())
+      ['Jilid 1', 'Jilid 2', 'Jilid 3', 'Jilid 4'].contains(jilid.text.trim())
       ? jilid.text.trim()
       : null;
   String? halamanVal = halaman.text.trim().isEmpty ? null : halaman.text.trim();
   String? materiVal = materi.text.trim().isEmpty ? null : materi.text.trim();
-
 
   return StatefulBuilder(
     builder: (context, setInner) {
@@ -390,9 +383,31 @@ class SummarySectionCard extends StatelessWidget {
 
   String juzRangeText(List<int> juzSelesai) {
     if (juzSelesai.isEmpty) return 'Belum ada juz selesai';
-    final min = juzSelesai.first;
-    final max = juzSelesai.last;
-    return (min == max) ? 'Juz $min' : 'Juz $min–$max';
+
+    List<int> sortedJuz = List.from(juzSelesai)..sort();
+
+    List<String> ranges = [];
+    int start = sortedJuz[0];
+    int end = sortedJuz[0];
+
+    for (int i = 1; i < sortedJuz.length; i++) {
+      if (sortedJuz[i] == end + 1) {
+        end = sortedJuz[i];
+      } else {
+        ranges.add(_formatRange(start, end));
+        // Mulai rentang baru
+        start = sortedJuz[i];
+        end = sortedJuz[i];
+      }
+    }
+
+    ranges.add(_formatRange(start, end));
+
+    return 'Juz ${ranges.join(", ")}';
+  }
+
+  String _formatRange(int start, int end) {
+    return (start == end) ? '$start' : '$start–$end';
   }
 
   double _pct(int part, int total) => total == 0 ? 0 : (part / total) * 100;
@@ -420,9 +435,12 @@ class SummarySectionCard extends StatelessWidget {
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(999),
+                
                 child: LinearProgressIndicator(
                   value: total == 0 ? 0 : (memenuhi / total),
                   minHeight: 10,
+                  backgroundColor: Colors.grey.shade300,
+                  valueColor: AlwaysStoppedAnimation(const Color(0xFF27AE60)),
                 ),
               ),
               const SizedBox(height: 8),

@@ -271,7 +271,9 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: OutlinedButton.styleFrom(
-        backgroundColor: active ? Colors.grey.shade200 : null,
+        foregroundColor: active ?  Color(0xFF27AE60) : Color(0xFF27AE60) ,
+        side: const BorderSide(color: const Color.fromARGB(255, 244, 253, 248)),
+        backgroundColor: active ? const Color.fromARGB(255, 244, 253, 248)  : Colors.white,
       ),
     );
   }
@@ -395,7 +397,6 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -583,7 +584,7 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
                           materi: tMateriC,
                         ),
                         //   oneField('Tahsin', tahsinC),
-                          const SizedBox(height: 12),
+                        const SizedBox(height: 12),
                       ],
                       if (_openSections.contains('pr')) ...[
                         oneField('PR', prC),

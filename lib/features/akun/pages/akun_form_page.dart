@@ -78,7 +78,7 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
         await safeClosePage(rootContext);
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(isEdit ? 'Edit Akun' : 'Tambah Akun')),
+        appBar: AppBar(title: Text(isEdit ? 'Edit Akun' : 'Tambah Akun'),),
         body: Padding(
           padding: const EdgeInsets.all(14),
           child: Form(
@@ -160,6 +160,7 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                           : () => setState(() => obscure = !obscure),
                       icon: Icon(
                         obscure ? Icons.visibility : Icons.visibility_off,
+                        color: Color(0xFF27AE60),
                       ),
                     ),
                   ),
@@ -211,7 +212,16 @@ class _AkunFormPageState extends ConsumerState<AkunFormPage> {
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 48,
+
                   child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF27AE60),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.all(15),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                     onPressed: saving
                         ? null
                         : () async {

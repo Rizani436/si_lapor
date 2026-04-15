@@ -78,7 +78,7 @@ class _AkunListPageState extends ConsumerState<AkunListPage> {
                 IconButton(
                   icon: Stack(
                     children: [
-                      Icon(_showFilters ? Icons.filter_alt_off : Icons.filter_alt),
+                      Icon(_showFilters ? Icons.filter_alt_off : Icons.filter_alt,),
                       if (hasActiveFilter)
                         const Positioned(
                           right: 0,

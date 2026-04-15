@@ -19,5 +19,19 @@ final laporanRingkasDetailProvider = FutureProvider.family<
   },
 );
 
+final laporanSeluruhRingkasDetailProvider = FutureProvider.family<
+    Map<String, List<RingkasItem>>,
+    ({int idSiswa})>(
+  (ref, q) async {
+    final service = ref.read(laporanServiceProvider);
+
+    final laporan = await service.getLaporanSeluruh(
+      idSiswa: q.idSiswa,
+    );
+
+    return buildRingkasanDetail(laporan);
+  },
+);
+
 
 

@@ -473,7 +473,6 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
       return Text('$title: -');
     }
 
-    // Mengelompokkan berdasarkan Juz
     final Map<int, List<RingkasItem>> grouped = {};
 
     for (final item in items) {
@@ -663,6 +662,10 @@ class _LaporanListPageState extends ConsumerState<LaporanListPage> {
 
               const SizedBox(height: 14),
               SegmentedButton<LaporanViewMode>(
+                style: SegmentedButton.styleFrom(
+                  selectedBackgroundColor: const Color(0xFF27AE60),
+                  selectedForegroundColor: Colors.white,
+                ),
                 segments: const [
                   ButtonSegment(
                     value: LaporanViewMode.harian,

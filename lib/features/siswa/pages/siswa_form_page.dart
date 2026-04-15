@@ -42,7 +42,6 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
     tglLahir = s?.tanggalLahir ?? DateTime(2010, 1, 1);
     aktif = (s?.ketAktif ?? 1) == 1;
     jumlahJuz = s?.jumlahJuz ?? 0;
-
   }
 
   @override
@@ -170,7 +169,13 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                 ),
                 trailing: OutlinedButton(
                   onPressed: _pickDate,
-                  child: const Text('Pilih'),
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                  ),
+                  child: const Text(
+                    'Pilih',
+                    style: TextStyle(color: Colors.black87),
+                  ),
                 ),
               ),
 
@@ -203,7 +208,8 @@ class _SiswaFormPageState extends ConsumerState<SiswaFormPage> {
                               tahunMasuk: tahunMasukC.text.trim(),
                               tanggalLahir: tglLahir,
                               ketAktif: aktif ? 1 : 0,
-                              jumlahJuz: int.tryParse(jumlahJuzC.text.trim()) ?? 0,
+                              jumlahJuz:
+                                  int.tryParse(jumlahJuzC.text.trim()) ?? 0,
                             );
 
                             final notifier = ref.read(

@@ -40,13 +40,13 @@ class LaporanKepsekService {
               .inFilter('tahun_pelajaran', validTahunPelajaran);
         } else {
           final temp1 = validTahunPelajaran.last;
-         validTahunPelajaran.removeLast();
+          validTahunPelajaran.removeLast();
 
           kelasList = await sb
               .from('kelasalquran')
               .select('id_kelas')
               .inFilter('tahun_pelajaran', validTahunPelajaran);
-          
+
           kelasList.addAll(
             await sb
                 .from('kelasalquran')
@@ -73,9 +73,17 @@ class LaporanKepsekService {
 
       final laporan = await sb
           .from('laporan')
-          .select('id_data_siswa, tasmi')
+          .select('''
+      id_data_siswa, 
+      tasmi,
+      datasiswa!inner (
+        ket_aktif
+      )
+    ''')
+          .not('tasmi', 'is', null)
           .eq('pelapor', "Guru")
-          .inFilter('id_ruang_kelas', idRuangList);
+          .inFilter('id_ruang_kelas', idRuangList)
+          .eq('datasiswa.ket_aktif', 1);
 
       return (laporan as List)
           .map((e) => Map<String, dynamic>.from(e as Map))
@@ -100,7 +108,6 @@ class LaporanKepsekService {
         if (id is int && nama is String && nama.trim().isNotEmpty) {
           map[id] = [nama, targetJuz].join('||');
         }
-        
       }
       return map;
     }, 'Gagal mengambil daftar siswa');

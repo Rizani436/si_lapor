@@ -48,6 +48,8 @@ class LaporanKepsekState {
 
   List<TasmiSummary> get summaryReguler => summaryAll.where((e) => e.jumlahJuz <= 2).toList();
   List<TasmiSummary> get summaryTahfiz => summaryAll.where((e) => e.jumlahJuz > 2).toList();
+
+  
 }
 
 class LaporanKepsekNotifier extends Notifier<LaporanKepsekState> {

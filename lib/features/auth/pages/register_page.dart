@@ -146,6 +146,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                 suffixIcon: IconButton(
                   icon: Icon(
                     obscurePassword ? Icons.visibility_off : Icons.visibility,
+                    color: Color(0xFF27AE60)
                   ),
                   onPressed: () =>
                       setState(() => obscurePassword = !obscurePassword),
@@ -164,6 +165,7 @@ class _RegisterPageState extends ConsumerState<RegisterPage> {
                     obscureConfirmPassword
                         ? Icons.visibility_off
                         : Icons.visibility,
+                    color: Color(0xFF27AE60)
                   ),
                   onPressed: () => setState(
                     () => obscureConfirmPassword = !obscureConfirmPassword,
