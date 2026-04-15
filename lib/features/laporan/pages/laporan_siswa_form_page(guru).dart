@@ -271,9 +271,11 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: OutlinedButton.styleFrom(
-        foregroundColor: active ?  Color(0xFF27AE60) : Color(0xFF27AE60) ,
+        foregroundColor: active ? Color(0xFF27AE60) : Color(0xFF27AE60),
         side: const BorderSide(color: const Color.fromARGB(255, 244, 253, 248)),
-        backgroundColor: active ? const Color.fromARGB(255, 244, 253, 248)  : Colors.white,
+        backgroundColor: active
+            ? const Color.fromARGB(255, 244, 253, 248)
+            : Colors.white,
       ),
     );
   }
@@ -335,6 +337,33 @@ class _LaporanSiswaFormPageState extends ConsumerState<LaporanSiswaFormPage> {
     if (idDataSiswa == null || idRuangKelas == null || tanggalStr == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Data siswa/kelas/tanggal belum lengkap')),
+      );
+      return;
+    }
+
+    String? pesanError;
+    bool isAnyFilled =
+        tasmiJuzC.text.trim().isNotEmpty ||
+        tasmiPredikatC.text.trim().isNotEmpty ||
+        zJuzC.text.trim().isNotEmpty ||
+        zSurahC.text.trim().isNotEmpty ||
+        zAyatC.text.trim().isNotEmpty ||
+        mJuzC.text.trim().isNotEmpty ||
+        mSurahC.text.trim().isNotEmpty ||
+        mAyatC.text.trim().isNotEmpty ||
+        tJilidC.text.trim().isNotEmpty ||
+        tHalamanC.text.trim().isNotEmpty ||
+        tMateriC.text.trim().isNotEmpty ||
+        prC.text.trim().isNotEmpty ||
+        noteC.text.trim().isNotEmpty;
+
+    if (!isAnyFilled) {
+      pesanError = 'Laporan belum diisi.';
+    }
+
+    if (pesanError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(pesanError), backgroundColor: Colors.red),
       );
       return;
     }

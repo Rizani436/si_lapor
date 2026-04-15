@@ -27,9 +27,9 @@ class LaporanSiswaInput {
       onPressed: () => onToggle(key),
       icon: Icon(icon, size: 18),
       style: OutlinedButton.styleFrom(
-        foregroundColor: active ?  Colors.white : Color(0xFF27AE60) ,
+        foregroundColor: active ? Colors.white : Color(0xFF27AE60),
         side: const BorderSide(color: Colors.white),
-        backgroundColor: active ? const Color(0xFF27AE60)  : Colors.white,
+        backgroundColor: active ? const Color(0xFF27AE60) : Colors.white,
       ),
       label: Text(label),
     );
@@ -195,6 +195,41 @@ class _LaporanSemuaSiswaFormPageState
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Pilih minimal 1 siswa')));
+      return;
+    }
+
+    String? pesanError;
+    for (final input in laporanInputs) {
+      if (_selectedSiswaIds.contains(input.idSiswa)) {
+        bool isAnyFilled =
+            input.tasmiJuzC.text.trim().isNotEmpty ||
+            input.tasmiPredikatC.text.trim().isNotEmpty ||
+            input.zJuzC.text.trim().isNotEmpty ||
+            input.zSurahC.text.trim().isNotEmpty ||
+            input.zAyatC.text.trim().isNotEmpty ||
+            input.mJuzC.text.trim().isNotEmpty ||
+            input.mSurahC.text.trim().isNotEmpty ||
+            input.mAyatC.text.trim().isNotEmpty ||
+            input.tJilidC.text.trim().isNotEmpty ||
+            input.tHalamanC.text.trim().isNotEmpty ||
+            input.tMateriC.text.trim().isNotEmpty ||
+            input.prC.text.trim().isNotEmpty ||
+            input.noteC.text.trim().isNotEmpty;
+
+        if (!isAnyFilled) {
+          final siswa = _siswaData?.firstWhere(
+            (s) => s.idDataSiswa == input.idSiswa,
+          );
+          pesanError = 'Laporan ${siswa?.namaLengkap ?? 'Siswa'} belum diisi.';
+          break;
+        }
+      }
+    }
+
+    if (pesanError != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(pesanError), backgroundColor: Colors.red),
+      );
       return;
     }
 
